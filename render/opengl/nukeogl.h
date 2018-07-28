@@ -24,6 +24,7 @@ void ogldisplay(void);
 void oglclose();
 void oglmove(int x, int y);
 void oglpmove(int x, int y);
+void ogltimer(int t);
 
 class NukeOGL : public iRender
 {
@@ -31,7 +32,9 @@ private:
     NukeOGL(){}
     ~NukeOGL(){}
     b::function<void()> _onClose;
-
+    b::function<void()> _physTrigger;
+    b::function<void(void)> _onRender;
+    b::function<void(void)> _onGUI;
 public:
     static NukeOGL* getSingleton()
     {
@@ -72,6 +75,10 @@ public:
         cout << "Mouse event! [" << button << ", " << state << ", " << x << ", " << y << "]" << endl;
     }
 
+    void timer(){
+        if(_physTrigger)
+            _physTrigger();
+    }
 
 
 
@@ -95,6 +102,7 @@ public:
         //glutButtonBoxFunc()
         glutMotionFunc(oglmove);
         glutPassiveMotionFunc(oglpmove);
+        glutTimerFunc(30, ogltimer, 1);
         glutMouseFunc(oglmouse);
         glutReshapeFunc(oglreshape);
         glutDisplayFunc(ogldisplay);
@@ -117,6 +125,12 @@ public:
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0, 0, 0, 1.0);
+
+        if(_onRender)
+            _onRender();
+
+        if(_onGUI)
+            _onGUI();
 
         glFlush();
         glutSwapBuffers();
@@ -192,4 +206,7 @@ void oglclose(){
     NukeOGL::getSingleton()->close();
 }
 
+void ogltimer(int t){
+    NukeOGL::getSingleton()->timer();
+}
 #endif // NUKEOGL_H
