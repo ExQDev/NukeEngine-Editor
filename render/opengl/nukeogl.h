@@ -14,17 +14,23 @@
 using namespace std;
 
 void oglkeyboard(unsigned char c, int x, int y);
+void oglspecialkeyboard(int key, int x, int y);
+void oglkeyboardup(unsigned char c, int x, int y);
+void oglspecialkeyboardup(int key, int x, int y);
 void oglmouse (int button, int state, int x, int y);
 void oglreshape(int width, int height);
 void oglidle(void);
 void ogldisplay(void);
-
+void oglclose();
+void oglmove(int x, int y);
+void oglpmove(int x, int y);
 
 class NukeOGL : public iRender
 {
 private:
     NukeOGL(){}
     ~NukeOGL(){}
+    b::function<void()> _onClose;
 
 public:
     static NukeOGL* getSingleton()
@@ -33,22 +39,42 @@ public:
         return &instance;
     }
 
+    void close()
+    {
+        if(_onClose)
+            _onClose();
+    }
+
+    void move(int x, int y)
+    {
+        cout << "mov [ " << x << ", " << y << " ]" << endl;
+    }
+
+    void passmove(int x, int y)
+    {
+        cout << "pmov [ " << x << ", " << y << " ]" << endl;
+    }
+
     void keyboard(unsigned char c, int x, int y) {
-        cout << "Key pressed! [" << c << "]" << endl;
         KeyBoard::getSigleton()->key(c,x,y);
-    //    if (c == 27) {
-    //        cout << "Escape pressed!" << endl;
-    //        exit(0);
-    //    }
+    }
+    void keyboardUp(unsigned char c, int x, int y) {
+        KeyBoard::getSigleton()->keyup(c,x,y);
+    }
+    void special(int key, int x, int y){
+        KeyBoard::getSigleton()->special(key, x, y);
+    }
+    void specialup(int key, int x, int y){
+        KeyBoard::getSigleton()->specialup(key, x, y);
     }
 
     void mouse(int button, int state, int x, int y){
         cout << "Mouse event! [" << button << ", " << state << ", " << x << ", " << y << "]" << endl;
-    //    if (button == GLUT_RIGHT_BUTTON) {
-    //        cout << "CLUT Right button pressed!" << endl;
-    //        exit(0);
-    //    }
     }
+
+
+
+
 
     int init(int w, int h)
     {
@@ -62,6 +88,13 @@ public:
         glutInitWindowSize(w, h);
         glutCreateWindow("NukeEngine Editor");
         glutKeyboardFunc(oglkeyboard);
+        glutSpecialFunc(oglspecialkeyboard);
+        glutKeyboardUpFunc(oglkeyboardup);
+        glutSpecialUpFunc(oglspecialkeyboardup);
+        glutCloseFunc(oglclose);
+        //glutButtonBoxFunc()
+        glutMotionFunc(oglmove);
+        glutPassiveMotionFunc(oglpmove);
         glutMouseFunc(oglmouse);
         glutReshapeFunc(oglreshape);
         glutDisplayFunc(ogldisplay);
@@ -108,10 +141,30 @@ public:
 
 };
 
+void oglmove(int x, int y){
+    NukeOGL::getSingleton()->move(x, y);
+}
+
+void oglpmove(int x, int y){
+    NukeOGL::getSingleton()->passmove(x, y);
+}
+
+
 void oglkeyboard(unsigned char c, int x, int y) {
     NukeOGL::getSingleton()->keyboard(c,x,y);
 }
 
+void oglspecialkeyboard(int key, int x, int y) {
+    NukeOGL::getSingleton()->special(key,x,y);
+}
+
+void oglkeyboardup(unsigned char c, int x, int y) {
+    NukeOGL::getSingleton()->keyboardUp(c,x,y);
+}
+
+void oglspecialkeyboardup(int key, int x, int y) {
+    NukeOGL::getSingleton()->specialup(key,x,y);
+}
 void oglmouse (int button, int state, int x, int y) {
     NukeOGL::getSingleton()->mouse(button,state,x,y);
 }
@@ -133,6 +186,10 @@ void oglidle(void){
 void ogldisplay(void)
 {
     NukeOGL::getSingleton()->render();
+}
+
+void oglclose(){
+    NukeOGL::getSingleton()->close();
 }
 
 #endif // NUKEOGL_H

@@ -31,7 +31,7 @@ public:
         return &instance;
     }
 
-    Mouse operator+=(b::function<void(unsigned char c, int x, int y)> onKey)
+    Mouse* operator+=(b::function<void(unsigned char c, int x, int y)> onKey)
     {
         _onKey.push_back(onKey);
     }
