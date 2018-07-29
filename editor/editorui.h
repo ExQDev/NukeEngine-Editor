@@ -278,7 +278,7 @@ public:
             ImGui::EndMenu();
         }
         if (ImGui::MenuItem("Quit", "Alt+F4")) {
-            exit(0);
+            glutLeaveMainLoop();
         }
     }
 

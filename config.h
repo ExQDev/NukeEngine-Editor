@@ -186,7 +186,7 @@ private:
 
         auto t = lb::getGlobal(lua->l, "theme");
         if(!t.isNil()){
-
+            loadTheme(&theme, t);
         }
     }
     ~Config() {}
