@@ -4,6 +4,7 @@
 #include <deps/imgui/imgui_internal.h>
 #include <GL/freeglut.h>
 #include <gui/gui.h>
+#include <config.h>
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
@@ -108,6 +109,8 @@ class EditorUI
 private:
     EditorUI() {}
     ~EditorUI() {}
+    struct NukeWindow * win;
+
 public:
     static EditorUI* getSingleton(){
         static EditorUI instance;
@@ -147,6 +150,8 @@ public:
         io.KeyMap[ImGuiKey_Z] = 'Z';
 
         GUI::getSingleton()->setup();
+        io.Fonts->AddFontFromFileTTF(Config::getSingleton()->window.mainFont.c_str(), 19.f);
+        win = &Config::getSingleton()->window;
     }
 
     bool ImGui_ImplOpenGL2_CreateFontsTexture()
@@ -217,16 +222,102 @@ public:
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
     }
 
+    void mainMenu(){
+        if (ImGui::BeginMainMenuBar())
+            {
+                if (ImGui::BeginMenu("File"))
+                {
+                    ShowMenuFile();
+                    ImGui::EndMenu();
+                }
+                if (ImGui::BeginMenu("Edit"))
+                {
+                    if (ImGui::MenuItem("Undo", "CTRL+Z")) {}
+                    if (ImGui::MenuItem("Redo", "CTRL+Y", false, false)) {}  // Disabled item
+                    ImGui::Separator();
+                    if (ImGui::MenuItem("Cut", "CTRL+X")) {}
+                    if (ImGui::MenuItem("Copy", "CTRL+C")) {}
+                    if (ImGui::MenuItem("Paste", "CTRL+V")) {}
+                    ImGui::EndMenu();
+                }
+                if (ImGui::BeginMenu("Window"))
+                {
+                    ShowMenuWindow();
+                    ImGui::EndMenu();
+                }
+                ImGui::EndMainMenuBar();
+        }
+    }
+
+    void ShowMenuFile()
+    {
+        if (ImGui::MenuItem("New")) {}
+        if (ImGui::MenuItem("Open", "Ctrl+O")) {}
+        if (ImGui::BeginMenu("Open Recent"))
+        {
+            ImGui::EndMenu();
+        }
+        if (ImGui::MenuItem("Save", "Ctrl+S")) {}
+        if (ImGui::MenuItem("Save As..")) {}
+        ImGui::Separator();
+        if (ImGui::BeginMenu("Options"))
+        {
+            static bool enabled = true;
+            ImGui::MenuItem("Enabled", "", &enabled);
+            ImGui::BeginChild("child", ImVec2(0, 60), true);
+            for (int i = 0; i < 10; i++)
+                ImGui::Text("Scrolling Text %d", i);
+            ImGui::EndChild();
+            static float f = 0.5f;
+            static int n = 0;
+            static bool b = true;
+            ImGui::SliderFloat("Value", &f, 0.0f, 1.0f);
+            ImGui::InputFloat("Input", &f, 0.1f);
+            ImGui::Combo("Combo", &n, "Yes\0No\0Maybe\0\0");
+            ImGui::Checkbox("Check", &b);
+            ImGui::EndMenu();
+        }
+        if (ImGui::MenuItem("Quit", "Alt+F4")) {
+            exit(0);
+        }
+    }
+
+    void ShowMenuWindow()
+    {
+        ImGui::MenuItem("Hierarchy", "Ctrl+Alt+H", &win->hierarchy);
+        ImGui::MenuItem("Console", "Ctrl+Alt+C", &win->console);
+        ImGui::MenuItem("Browser", "Ctrl+Alt+B", &win->browser);
+    }
+
+    void winHierarchy(){
+        ImGui::Begin("Hierarchy");
+
+        ImGui::End();
+    }
+
+    void winConsole(){
+        ImGui::Begin("Console");
+
+        ImGui::End();
+    }
+
+    void winBrowser(){
+        ImGui::Begin("Browser");
+
+        ImGui::End();
+    }
+
     void Draw(){
         preDraw();
 
-        ImGui::Begin("WIN");
-        ImGui::Text("Hello, world %d", 123);
-        if (ImGui::Button("Save"))
-        {
-            // do stuff
-        }
-        ImGui::End();
+        mainMenu();
+
+        if(win->hierarchy)
+            winHierarchy();
+        if(win->browser)
+            winBrowser();
+        if(win->console)
+            winConsole();
 
         postDraw();
     }
