@@ -3,6 +3,7 @@
 #include <deps/imgui/imgui.h>
 #include <deps/imgui/imgui_internal.h>
 #include <GL/freeglut.h>
+#include <gui/gui.h>
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
@@ -144,6 +145,8 @@ public:
         io.KeyMap[ImGuiKey_X]           = 'X';
         io.KeyMap[ImGuiKey_Y]           = 'Y';
         io.KeyMap[ImGuiKey_Z] = 'Z';
+
+        GUI::getSingleton()->setup();
     }
 
     bool ImGui_ImplOpenGL2_CreateFontsTexture()
@@ -194,7 +197,7 @@ public:
         ImGui_ImplOpenGL2_DestroyFontsTexture();
     }
 
-    void Draw(){
+    void preDraw(){
         ImGuiIO& io = ImGui::GetIO();
         int current_time = glutGet(GLUT_ELAPSED_TIME);
         io.DeltaTime = (current_time - g_Time) / 1000.0f;
@@ -203,14 +206,29 @@ public:
             ImGui_ImplOpenGL2_CreateDeviceObjects();
         // Start the frame
         ImGui::NewFrame();
+    }
 
+    void postDraw(){
+        ImGui::Render();
+        ImGuiIO& io = ImGui::GetIO();
+        glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
+        glClearColor(0.0, 0.0, 0.0, 0.0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+    }
 
+    void Draw(){
+        preDraw();
+
+        ImGui::Begin("WIN");
         ImGui::Text("Hello, world %d", 123);
         if (ImGui::Button("Save"))
         {
             // do stuff
         }
-        ImGui::Render();
+        ImGui::End();
+
+        postDraw();
     }
 
     void Reshape(int w, int h){

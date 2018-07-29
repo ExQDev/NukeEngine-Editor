@@ -71,14 +71,14 @@ public:
 
     void move(int x, int y)
     {
-        cout << "mov [ " << x << ", " << y << " ]" << endl;
+        //cout << "mov [ " << x << ", " << y << " ]" << endl;
         if(_UImove)
             _UImove(x,y);
     }
 
     void passmove(int x, int y)
     {
-        cout << "pmov [ " << x << ", " << y << " ]" << endl;
+        //cout << "pmov [ " << x << ", " << y << " ]" << endl;
         if(_UImove)
             _UImove(x,y);
     }
@@ -180,7 +180,7 @@ public:
         if(_onGUI)
             _onGUI();
 
-        glFlush();
+//        glFlush();
         glutSwapBuffers();
         glutPostRedisplay();
         return 0;
