@@ -4,6 +4,7 @@
 #include <backend/lua.h>
 #include <gui/gui.h>
 #include <config.h>
+#include <editor/editorui.h>
 
 using namespace std;
 
@@ -38,7 +39,17 @@ int main()
     *keyboard &= keyboard2;
     *keyboard *= special;
     *keyboard |= specialup;
-    cout << config->window.w << ", " << config->window.h << endl;
+    auto gl = (NukeOGL*)render;
+    gl->_UIinit = editorinit;
+    gl->_UIkeyaboardUp = editorkeyaboardUp;
+    gl->_UIkeyboard = editorkeyboard;
+    gl->_UImouse = editormouse;
+    gl->_UImove = editormove;
+    gl->_UIpmove = editorpmove;
+    gl->_UIreshape = editorreshape;
+    gl->_UIspecial = editorspecial;
+    gl->_UIspecialUp = editorspecialUp;
+    render->setOnGUI(editorDraw);
     render->init(config->window.w, config->window.h);
     cout << "shit down..." << endl;
     return 0;

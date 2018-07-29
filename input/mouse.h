@@ -14,13 +14,13 @@ private:
     Mouse() {}
     ~Mouse(){}
 
-    list<b::function<void(unsigned char c, int x, int y)>> _onKey;
+    list<b::function<void(int button, int state, int x, int y)>> _onKey;
 
-    void key(unsigned char c, int x, int y)
+    void key(int button, int state, int x, int y)
     {
         for(auto f : _onKey)
         {
-            f(c, x, y);
+            f(button, state, x, y);
         }
     }
 
@@ -31,7 +31,7 @@ public:
         return &instance;
     }
 
-    Mouse* operator+=(b::function<void(unsigned char c, int x, int y)> onKey)
+    Mouse* operator+=(b::function<void(int button, int state, int x, int y)> onKey)
     {
         _onKey.push_back(onKey);
     }

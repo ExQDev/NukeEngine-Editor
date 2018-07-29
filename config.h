@@ -24,10 +24,10 @@ private:
         for(auto & p : iter)
         {
             cout << "[config] " << p.path().generic_path().c_str() << endl;
-            ifstream infile { p.path().c_str() };
-            std::string file {  istreambuf_iterator<char>(infile), istreambuf_iterator<char>() };
-            cout << file << endl;
-            lua->doStr(file.c_str());
+//            ifstream infile { p.path().c_str() };
+//            std::string file {  istreambuf_iterator<char>(infile), istreambuf_iterator<char>() };
+//            cout << file << endl;
+            lua->doFile(p.path().c_str());
         }
         auto w = lb::getGlobal(lua->l, "window");
         if(!w.isNil()){

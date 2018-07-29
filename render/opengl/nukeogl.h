@@ -2,7 +2,7 @@
 #define NUKEOGL_H
 #include "../irender.h"
 #include "../../input/keyboard.h"
-#include "../../input/keyboard.h"
+#include "../../input/mouse.h"
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
@@ -35,11 +35,32 @@ private:
     b::function<void()> _physTrigger;
     b::function<void(void)> _onRender;
     b::function<void(void)> _onGUI;
+
+
+
 public:
+    b::function<void()> _UIinit;
+    b::function<void(unsigned char c, int x, int y)> _UIkeyboard;
+    b::function<void(unsigned char c, int x, int y)> _UIkeyaboardUp;
+    b::function<void(int key, int x, int y)> _UIspecial;
+    b::function<void(int key, int x, int y)> _UIspecialUp;
+    b::function<void(int button, int state, int x, int y)> _UImouse;
+    b::function<void(int x, int y)> _UImove;
+    b::function<void(int x, int y)> _UIpmove;
+    b::function<void(int w, int h)> _UIreshape;
+
     static NukeOGL* getSingleton()
     {
         static NukeOGL instance;
         return &instance;
+    }
+
+    void setOnGUI(b::function<void(void)> cb){
+        _onGUI = cb;
+    }
+
+    void setOnRender(b::function<void(void)> cb){
+        _onRender = cb;
     }
 
     void close()
@@ -51,28 +72,42 @@ public:
     void move(int x, int y)
     {
         cout << "mov [ " << x << ", " << y << " ]" << endl;
+        if(_UImove)
+            _UImove(x,y);
     }
 
     void passmove(int x, int y)
     {
         cout << "pmov [ " << x << ", " << y << " ]" << endl;
+        if(_UImove)
+            _UImove(x,y);
     }
 
     void keyboard(unsigned char c, int x, int y) {
         KeyBoard::getSigleton()->key(c,x,y);
+        if(_UIkeyboard)
+            _UIkeyboard(c,x,y);
     }
     void keyboardUp(unsigned char c, int x, int y) {
         KeyBoard::getSigleton()->keyup(c,x,y);
+        if(_UIkeyaboardUp)
+            _UIkeyaboardUp(c,x,y);
     }
     void special(int key, int x, int y){
         KeyBoard::getSigleton()->special(key, x, y);
+        if(_UIspecial)
+            _UIspecial(key, x, y);
     }
     void specialup(int key, int x, int y){
         KeyBoard::getSigleton()->specialup(key, x, y);
+        if(_UIspecialUp)
+            _UIspecialUp(key,x,y);
     }
 
     void mouse(int button, int state, int x, int y){
-        cout << "Mouse event! [" << button << ", " << state << ", " << x << ", " << y << "]" << endl;
+        Mouse::getSingleton()->key(button,state,x,y);
+        if(_UImouse)
+            _UImouse(button,state,x,y);
     }
 
     void timer(){
@@ -80,7 +115,17 @@ public:
             _physTrigger();
     }
 
+    void reshape(int w, int h){
+        if(_UIreshape)
+            _UIreshape(w,h);
 
+        glViewport(0, 0, w, h);
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        //gluOrtho2D(0, width, 0, height);
+        glMatrixMode(GL_MODELVIEW);
+    }
 
 
     int init(int w, int h)
@@ -108,6 +153,9 @@ public:
         glutDisplayFunc(ogldisplay);
         glutIdleFunc(oglidle);
         glewInit();
+
+        if(_UIinit)
+            _UIinit();
 
         glutMainLoop();
         return 0;
@@ -185,12 +233,7 @@ void oglmouse (int button, int state, int x, int y) {
 
 void oglreshape(int width, int height)
 {
-    glViewport(0, 0, width, height);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    //gluOrtho2D(0, width, 0, height);
-    glMatrixMode(GL_MODELVIEW);
+    NukeOGL::getSingleton()->reshape(width, height);
 }
 
 void oglidle(void){
