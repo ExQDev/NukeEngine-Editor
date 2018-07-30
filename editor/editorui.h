@@ -5,6 +5,7 @@
 #include <GL/freeglut.h>
 #include <gui/gui.h>
 #include <config.h>
+#include <interface/EditorInstance.h>
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
@@ -104,6 +105,10 @@ void ImGui_ImplOpenGL2_RenderDrawData(ImDrawData* draw_data)
     glScissor(last_scissor_box[0], last_scissor_box[1], (GLsizei)last_scissor_box[2], (GLsizei)last_scissor_box[3]);
 }
 
+void TogglePluginMGR(){
+    Config::getSingleton()->window.plugmgr = !Config::getSingleton()->window.plugmgr;
+}
+
 class EditorUI
 {
 private:
@@ -153,6 +158,7 @@ public:
         GUI::getSingleton()->setup();
         io.Fonts->AddFontFromFileTTF(Config::getSingleton()->window.mainFont.c_str(), 19.f);
         win = &Config::getSingleton()->window;
+        InitMenu();
         cout << "EditorUI Initialization finished" << endl;
     }
 
@@ -228,7 +234,80 @@ public:
 //        cout << "End PostDraw" << endl;
     }
 
-    void mainMenu(){
+//    void SubSubMenu(MenuItem* item)
+//    {
+//        if(ImGui::BeginMenu(item->name.c_str())){
+//            if (item->subitems.size() > 0) {
+//                for (auto subitem : item->subitems)
+//                {
+//                    if (subitem->subitems.size() > 0)
+//                    {
+//                        if (nk_contextual_item_label(ctx, ("[+] " + subitem->name).c_str(), NK_TEXT_ALIGN_LEFT))
+//                        {
+//                            SubSubMenu(ctx, subitem);
+//                            nk_menu_end(ctx);
+//                        }
+//                    }
+//                    else
+//                    {
+//                        if (nk_contextual_item_label(ctx, subitem->name.c_str(), NK_TEXT_LEFT))
+//                            if (subitem->callback)
+//                                subitem->callback();
+//                    }
+//                }
+//            }
+//            ImGui::EndMenu();
+//        }
+//    }
+
+
+    void InitMenu()
+    {
+        EditorInstance::GetSingleton()->menuStrip = new MenuStrip();
+        EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/", "Plugin manager", TogglePluginMGR);
+        EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other", "Deep tools", TogglePluginMGR);
+        EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other/One more level", "...", TogglePluginMGR);
+        EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other/One more level/Last", "Wow", TogglePluginMGR);
+        for (auto rootElement : EditorInstance::GetSingleton()->menuStrip->strip)
+        {
+            cout << rootElement->name << endl;
+            if(rootElement->subitems.size() > 0)
+                for (auto subitem : rootElement->subitems)
+                {
+                    cout << "\t" << subitem->name << endl;
+                    if(subitem->subitems.size() > 0)
+                        for (auto it : subitem->subitems)
+                        {
+                            cout << "\t\t" << it->name << endl;
+
+                        }
+                }
+        }
+    }
+
+    bool EditorSubMenu(MenuItem* item)
+    {
+        if (item->subitems.size() > 0) {
+
+            if(ImGui::BeginMenu(item->name.c_str())){
+                for (auto subitem : item->subitems)
+                {
+                    EditorSubMenu(subitem);
+                }
+                ImGui::EndMenu();
+            }
+        }else
+            if(item->callback)
+            {
+                if(ImGui::MenuItem(item->name.c_str()))
+                    item->callback();
+            }
+        return true;
+    }
+
+
+    void EditorMenu()
+    {
         if (ImGui::BeginMainMenuBar())
             {
                 if (ImGui::BeginMenu("File"))
@@ -246,13 +325,24 @@ public:
                     if (ImGui::MenuItem("Paste", "CTRL+V")) {}
                     ImGui::EndMenu();
                 }
+                for (auto rootElement : EditorInstance::GetSingleton()->menuStrip->strip)
+                {
+                    EditorSubMenu(rootElement);
+                }
                 if (ImGui::BeginMenu("Window"))
                 {
                     ShowMenuWindow();
                     ImGui::EndMenu();
                 }
+
                 ImGui::EndMainMenuBar();
-        }
+            }
+    }
+
+
+
+    void mainMenu(){
+        EditorMenu();
     }
 
     void ShowMenuFile()
@@ -290,9 +380,14 @@ public:
 
     void ShowMenuWindow()
     {
+        if(ImGui::MenuItem("Fullscreen", "F11"))
+            glutFullScreenToggle();
+
+        ImGui::Separator();
         ImGui::MenuItem("Hierarchy", "Ctrl+Alt+H", &win->hierarchy);
         ImGui::MenuItem("Console", "Ctrl+Alt+C", &win->console);
         ImGui::MenuItem("Browser", "Ctrl+Alt+B", &win->browser);
+        ImGui::MenuItem("About", "", &win->about);
     }
 
     void winHierarchy(){

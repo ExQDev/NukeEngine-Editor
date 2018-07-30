@@ -5,7 +5,7 @@
 struct NukeWindow{
     int w, h;
     std::string mainFont;
-    bool hierarchy, console, browser;
+    bool hierarchy, console, browser, plugmgr, about;
 } NukeWindow;
 
 struct confUiVec{

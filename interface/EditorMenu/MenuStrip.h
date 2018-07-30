@@ -42,12 +42,12 @@ struct MenuStrip
 						else
 						{
 							MenuItem* x;
-							if (pn == tokens.back())
-								x = new MenuItem(pn, callback);
-							else
+                            if (pn == tokens.back())
 								x = new MenuItem(pn, 0);
 							current->subitems.push_back(x);
 							current = x;
+                            AddItem(path, name, callback);
+                            break;
 						}
 					}
 				}
