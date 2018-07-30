@@ -1,12 +1,17 @@
 #ifndef IRENDER_H
 #define IRENDER_H
 #include <boost/function.hpp>
+#include <API/Model/Transform.h>
 
 namespace b = boost;
+
 class iRender
 {
 public:
-    static iRender* getSingleton();
+//    static iRender* getSingleton();
+    Transform* transform;
+    int width, height;
+    float fov, Far, Near;
     virtual int render() = 0;
     virtual int init(int w, int h) = 0;
     virtual void loop() = 0;

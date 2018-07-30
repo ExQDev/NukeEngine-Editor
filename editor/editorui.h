@@ -121,6 +121,7 @@ public:
 
 
     void SetUp(){
+        cout << "EditorUI initialization..." << endl;
         context = ImGui::CreateContext();
 
         ImGuiIO& io = ImGui::GetIO();
@@ -152,6 +153,7 @@ public:
         GUI::getSingleton()->setup();
         io.Fonts->AddFontFromFileTTF(Config::getSingleton()->window.mainFont.c_str(), 19.f);
         win = &Config::getSingleton()->window;
+        cout << "EditorUI Initialization finished" << endl;
     }
 
     bool ImGui_ImplOpenGL2_CreateFontsTexture()
@@ -203,6 +205,7 @@ public:
     }
 
     void preDraw(){
+//        cout << "PreDraw" << endl;
         ImGuiIO& io = ImGui::GetIO();
         int current_time = glutGet(GLUT_ELAPSED_TIME);
         io.DeltaTime = (current_time - g_Time) / 1000.0f;
@@ -211,15 +214,18 @@ public:
             ImGui_ImplOpenGL2_CreateDeviceObjects();
         // Start the frame
         ImGui::NewFrame();
+//        cout << "End PreDraw" << endl;
     }
 
     void postDraw(){
+//        cout << "PostDraw" << endl;
         ImGui::Render();
         ImGuiIO& io = ImGui::GetIO();
         glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
         glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
+//        cout << "End PostDraw" << endl;
     }
 
     void mainMenu(){
@@ -310,6 +316,7 @@ public:
     void Draw(){
         preDraw();
 
+//        cout << "Draw" << endl;
         mainMenu();
 
         if(win->hierarchy)
@@ -318,6 +325,7 @@ public:
             winBrowser();
         if(win->console)
             winConsole();
+//        cout << "End Draw" << endl;
 
         postDraw();
     }

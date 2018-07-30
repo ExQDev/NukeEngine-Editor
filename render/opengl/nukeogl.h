@@ -29,16 +29,16 @@ void ogltimer(int t);
 class NukeOGL : public iRender
 {
 private:
-    NukeOGL(){}
-    ~NukeOGL(){}
     b::function<void()> _onClose;
     b::function<void()> _physTrigger;
     b::function<void(void)> _onRender;
     b::function<void(void)> _onGUI;
 
-
+    static NukeOGL* _main;
 
 public:
+    NukeOGL(){}
+    ~NukeOGL(){}
     b::function<void()> _UIinit;
     b::function<void(unsigned char c, int x, int y)> _UIkeyboard;
     b::function<void(unsigned char c, int x, int y)> _UIkeyaboardUp;
@@ -51,16 +51,20 @@ public:
 
     static NukeOGL* getSingleton()
     {
-        static NukeOGL instance;
-        return &instance;
+        //static NukeOGL instance;
+        if(!_main)
+            _main = new NukeOGL();
+        return _main;
     }
 
     void setOnGUI(b::function<void(void)> cb){
         _onGUI = cb;
+//        cout << cb << " -- onGUI[" << this << "]" << endl;
     }
 
     void setOnRender(b::function<void(void)> cb){
         _onRender = cb;
+//        cout << cb << " -- onRender" << endl;
     }
 
     void close()
@@ -130,6 +134,9 @@ public:
 
     int init(int w, int h)
     {
+        cout << "Render initialization..." << endl;
+        cout << "Render engine: " << getEngine() << endl;
+        cout << "NukeOGL version: " << getVersion() << endl;
         char *myargv [1];
         int myargc=1;
         myargv[0] = strdup("NukeEngine Editor");
@@ -157,6 +164,7 @@ public:
         if(_UIinit)
             _UIinit();
 
+        cout << "Initialization finished" << endl;
         glutMainLoop();
         return 0;
     }
@@ -171,18 +179,22 @@ public:
 
     int render()
     {
+        //cout << "Render" << endl;
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0, 0, 0, 1.0);
 
         if(_onRender)
             _onRender();
 
-        if(_onGUI)
+        //cout << _onGUI << " -- OnGUI [" << this << "]" << endl;
+        if(_onGUI){
             _onGUI();
+        }
 
 //        glFlush();
         glutSwapBuffers();
         glutPostRedisplay();
+        //cout << "End Render" << endl;
         return 0;
     }
 
@@ -202,6 +214,8 @@ public:
     }
 
 };
+
+NukeOGL* NukeOGL::_main;
 
 void oglmove(int x, int y){
     NukeOGL::getSingleton()->move(x, y);

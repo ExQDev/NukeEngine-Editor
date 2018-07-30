@@ -97,8 +97,8 @@ public:
         style->WindowRounding = 0.0f;
         style->FramePadding = ImVec2(5, 5);
         style->FrameRounding = 0.0f;
-        style->ItemSpacing = ImVec2(12, 8);
-        style->ItemInnerSpacing = ImVec2(8, 6);
+        style->ItemSpacing = ImVec2(6, 6);
+        style->ItemInnerSpacing = ImVec2(6, 6);
         style->IndentSpacing = 25.0f;
         style->ScrollbarSize = 15.0f;
         style->ScrollbarRounding = 0.0f;
