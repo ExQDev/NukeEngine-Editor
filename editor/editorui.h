@@ -506,14 +506,18 @@ public:
                     ImGui::Text(selectedPlugin->site);
                     ImGui::Text(selectedPlugin->description);
 
-                    ImGui::Columns(2);
                     if(selectedPlugin.get()->HasSettings())
+                    {
                         if (ImGui::Button("Settings"))
                         {
                             printf("Opening settings... [%s]\n", selectedPlugin.get()->title);
                             selectedPlugin->Settings();
                         }
-                    ImGui::NextColumn();
+                    }
+                    else{
+                        ImGui::Text("No settings");
+                    }
+                    ImGui::SameLine();
                     if (!selectedPlugin.get()->stopped)
                     {
                         if (ImGui::Button("Shutdown"))
