@@ -1,6 +1,6 @@
 #pragma once
-#ifndef GDK_EDITOR_MENU_STRIP_H
-#define GDK_EDITOR_MENU_STRIP_H
+#ifndef NUKEE_EDITOR_MENU_STRIP_H
+#define NUKEE_EDITOR_MENU_STRIP_H
 #include "MenuItem.h"
 
 struct MenuStrip
@@ -87,4 +87,4 @@ struct MenuStrip
 				}
 	}
 };
-#endif // !GDK_EDITOR_MENU_STRIP_H
+#endif // !NUKEE_EDITOR_MENU_STRIP_H

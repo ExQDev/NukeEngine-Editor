@@ -7,6 +7,7 @@
 #include "Texture.h"
 #include <boost/thread.hpp>
 #include <render/irender.h>
+#include <render/opengl/nukeogl.h>
 
 class Camera : public Component
 {
@@ -37,8 +38,10 @@ public:
 		renderer->fov = fov;
 		renderer->Far = _far;
 		renderer->Near = _near;
-        renderer->init(r_width, r_height);
-
+        if(((NukeOGL*)renderer) != NukeOGL::getSingleton())
+            renderer->init(r_width, r_height);
+        else
+            cout << "[!] Camera of main renderer" << endl;
 	}
 	
     Camera(GameObject* parent, iRender *renderer)
@@ -53,7 +56,11 @@ public:
 		if(this->renderer)
 			this->renderer->transform = transform;
 		parent->components.push_back(this);
-        this->renderer->init(r_width, r_height);
+        if(((NukeOGL*)renderer) != NukeOGL::getSingleton())
+            renderer->init(r_width, r_height);
+        else
+            cout << "[!] Camera of main renderer" << endl;
+        //this->renderer->init(r_width, r_height);
 	}
 	void FixedUpdate() {}
 	void Update() {

@@ -77,5 +77,6 @@ HEADERS += \
     interface/EditorMenu/MenuItem.h \
     interface/EditorMenu/MenuStrip.h \
     interface/EditorInstance.h \
-    interface/NUKEEInteface.h
+    interface/NUKEEInteface.h \
+    interface/Modular.h
 

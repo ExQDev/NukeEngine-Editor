@@ -7,7 +7,7 @@ class Scene
 {
 public:
 	std::string name = "Default scene";
-	boost::container::list<GameObject*> hierarchy;
+    bc::list<GameObject*> hierarchy;
 
 	GameObject* Get(std::string name) 
 	{

@@ -8,7 +8,7 @@ using namespace boost;
 
 #define API extern "C" BOOST_SYMBOL_EXPORT
 
-class GDKModule {
+class NUKEModule {
 public:
 	//Title of the plugin
 	char title[256];

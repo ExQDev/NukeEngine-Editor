@@ -6,6 +6,9 @@
 #include <gui/gui.h>
 #include <config.h>
 #include <interface/EditorInstance.h>
+//#include <interface/Modular.h>
+#include <boost/container/list.hpp>
+
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
@@ -109,12 +112,31 @@ void TogglePluginMGR(){
     Config::getSingleton()->window.plugmgr = !Config::getSingleton()->window.plugmgr;
 }
 
+//bool PlugTitleGetter(void* data, int n, const char** out_text)
+//{
+//  const bc::vector<boost::shared_ptr<NUKEModule>>* v = (bc::vector<boost::shared_ptr<NUKEModule>>*)data;
+//  *out_text = v->at(n).get()->title;
+//  return true;
+//}
+
+bool HierarchyGetter(void* data, int n, const char** out_text)
+{
+  const bc::list<GameObject*>* v = (bc::list<GameObject*>*)data;
+  auto it = v->begin();
+  boost::advance(it, n);
+  *out_text = (*it)->name.c_str();
+  return true;
+}
+
 class EditorUI
 {
 private:
     EditorUI() {}
     ~EditorUI() {}
     struct NukeWindow * win;
+    //boost::shared_ptr<NUKEModule> selectedPlugin = nullptr;
+    int selectedPluginIndex = 0;
+    int selectedGameObjectIndex = -1;
 
 public:
     static EditorUI* getSingleton(){
@@ -234,32 +256,6 @@ public:
 //        cout << "End PostDraw" << endl;
     }
 
-//    void SubSubMenu(MenuItem* item)
-//    {
-//        if(ImGui::BeginMenu(item->name.c_str())){
-//            if (item->subitems.size() > 0) {
-//                for (auto subitem : item->subitems)
-//                {
-//                    if (subitem->subitems.size() > 0)
-//                    {
-//                        if (nk_contextual_item_label(ctx, ("[+] " + subitem->name).c_str(), NK_TEXT_ALIGN_LEFT))
-//                        {
-//                            SubSubMenu(ctx, subitem);
-//                            nk_menu_end(ctx);
-//                        }
-//                    }
-//                    else
-//                    {
-//                        if (nk_contextual_item_label(ctx, subitem->name.c_str(), NK_TEXT_LEFT))
-//                            if (subitem->callback)
-//                                subitem->callback();
-//                    }
-//                }
-//            }
-//            ImGui::EndMenu();
-//        }
-//    }
-
 
     void InitMenu()
     {
@@ -268,21 +264,21 @@ public:
         EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other", "Deep tools", TogglePluginMGR);
         EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other/One more level", "...", TogglePluginMGR);
         EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other/One more level/Last", "Wow", TogglePluginMGR);
-        for (auto rootElement : EditorInstance::GetSingleton()->menuStrip->strip)
-        {
-            cout << rootElement->name << endl;
-            if(rootElement->subitems.size() > 0)
-                for (auto subitem : rootElement->subitems)
-                {
-                    cout << "\t" << subitem->name << endl;
-                    if(subitem->subitems.size() > 0)
-                        for (auto it : subitem->subitems)
-                        {
-                            cout << "\t\t" << it->name << endl;
+//        for (auto rootElement : EditorInstance::GetSingleton()->menuStrip->strip)
+//        {
+//            cout << rootElement->name << endl;
+//            if(rootElement->subitems.size() > 0)
+//                for (auto subitem : rootElement->subitems)
+//                {
+//                    cout << "\t" << subitem->name << endl;
+//                    if(subitem->subitems.size() > 0)
+//                        for (auto it : subitem->subitems)
+//                        {
+//                            cout << "\t\t" << it->name << endl;
 
-                        }
-                }
-        }
+//                        }
+//                }
+//        }
     }
 
     bool EditorSubMenu(MenuItem* item)
@@ -339,7 +335,60 @@ public:
             }
     }
 
+    bool TreeNodeV(const void* ptr_id, bool isSelected, bool isLeaf, const char* fmt, va_list args)
+    {
+        bool opened = false;
 
+        if (isSelected)
+        {
+            ImVec2 pos = ImGui::GetCursorScreenPos();
+            ImU32 col = ImColor(ImGui::GetStyle().Colors[ImGuiCol_HeaderHovered]);
+            ImGui::RenderFrame(
+                pos,
+                ImVec2(pos.x + ImGui::GetContentRegionMax().x, pos.y + ImGui::GetTextLineHeight()),
+                col,
+                false);
+        }
+
+        ImGuiWindow* window = ImGui::GetCurrentWindow();
+        if (window->SkipItems)
+            return false;
+
+        auto& g = *GImGui;
+        ImFormatStringV(g.TempBuffer, IM_ARRAYSIZE(g.TempBuffer), fmt, args);
+
+        if (!ptr_id)
+            ptr_id = fmt;
+
+        if (!isLeaf)
+        {
+            ImGui::PushID(ptr_id);
+            opened = ImGui::CollapsingHeader(g.TempBuffer, "", false);
+            ImGui::PopID();
+        }
+        else
+        {
+            ImGui::Text(g.TempBuffer);
+        }
+
+        bool result = !isLeaf && opened;
+
+        if (result)
+        {
+            ImGui::TreePush(ptr_id);
+        }
+
+        return result;
+    }
+
+    bool TreeNode(const void* ptr_id, bool isSelected, bool isLeaf, const char* fmt, ...)
+    {
+        va_list args;
+        va_start(args, fmt);
+        bool s = TreeNodeV(ptr_id, isSelected, isLeaf, fmt, args);
+        va_end(args);
+        return s;
+    }
 
     void mainMenu(){
         EditorMenu();
@@ -390,9 +439,52 @@ public:
         ImGui::MenuItem("About", "", &win->about);
     }
 
+    void DisplayRecursiveGameObjectHierarchy(bc::list<GameObject*> &gos){
+        //ShowHelpMarker("Click to select, CTRL+Click to toggle, double-click to open");
+        static int selection_mask = 0x02;   // Dumb representation of what may be user-side selection state. You may carry selection state inside or outside your objects in whatever format you see fit.
+
+        int node_clicked = -1;
+
+        for (int i = 0; i < ((int)gos.size()); i++)
+        {
+            auto it = gos.begin(); //EditorInstance::GetSingleton()->currentScene->hierarchy.begin();
+            boost::advance(it, i);
+            ImGuiTreeNodeFlags node_flags = ((selection_mask & (1 << i)) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+            bool opened = ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, (*it)->name.c_str(), i);
+            if (ImGui::IsItemClicked())
+            {
+                node_clicked = i;
+                selectedGameObjectIndex = i;
+                EditorInstance::GetSingleton()->selectedInHieararchy = (*it);
+//                cout << "SELECTED: " << EditorInstance::GetSingleton()->selectedInHieararchy << endl;
+            }
+            if (opened)
+            {
+                if((*it)->children.size() > 0)
+                    DisplayRecursiveGameObjectHierarchy((*it)->children);
+                else
+                    ImGui::Text("No children");
+
+                ImGui::TreePop();
+            }
+        }
+        if (node_clicked != -1)
+        {
+            // Update selection state. Process outside of tree loop to avoid visual inconsistencies during the clicking-frame.
+            if (ImGui::GetIO().KeyCtrl)
+                selection_mask ^= (1 << node_clicked);  // CTRL+click to toggle
+            else
+                selection_mask = (1 << node_clicked);   // Click to single-select
+        }
+
+
+
+    }
+
     void winHierarchy(){
         ImGui::Begin("Hierarchy");
-
+        //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&EditorInstance::GetSingleton()->currentScene->hierarchy), EditorInstance::GetSingleton()->currentScene->hierarchy.size());
+        DisplayRecursiveGameObjectHierarchy(EditorInstance::GetSingleton()->currentScene->hierarchy);
         ImGui::End();
     }
 
@@ -408,6 +500,63 @@ public:
         ImGui::End();
     }
 
+    void PluginMGRWindow()
+    {
+//        if (ImGui::Begin("Plugins"))
+//        {
+//            ImGui::Columns(2);
+//            ImGui::ListBox("PluginsList", &selectedPluginIndex, PlugTitleGetter, static_cast<void*>(&modules), modules.size());
+////            {
+////                for (boost::shared_ptr<NUKEModule> mod : modules) {
+////                    if(mod)
+////                        if (nk_select_label(ctx, mod.get()->title, NK_TEXT_LEFT, selectedPlugin == mod))
+////                            selectedPlugin = mod;
+////                }
+////            };
+//            ImGui::NextColumn();
+//            if (ImGui::CollapsingHeader("PluginDetailes"))
+//            {
+//                if (selectedPlugin)
+//                {
+//                    ImGui::Text(selectedPlugin->title);
+//                    ImGui::Text(selectedPlugin->author);
+
+//                    ImGui::Text(selectedPlugin->version);
+
+//                    ImGui::Text(selectedPlugin->site);
+
+
+//                    ImGui::Text(selectedPlugin->description);
+
+//                    ImGui::Columns(2);
+//                    if(selectedPlugin.get()->HasSettings())
+//                        if (ImGui::Button("Settings"))
+//                        {
+//                            printf("Opening settings... [%s]\n", selectedPlugin.get()->title);
+//                            selectedPlugin->Settings();
+//                        }
+//                    ImGui::NextColumn();
+//                    if (!selectedPlugin.get()->stopped)
+//                    {
+//                        if (ImGui::Button("Shutdown"))
+//                        {
+//                            printf("Shutting down... [%s]\n", selectedPlugin.get()->title);
+//                            selectedPlugin->Shutdown();
+//                        }
+//                    }
+//                    else
+//                    {
+//                        if (ImGui::Button("Run"))
+//                        {
+//                            printf("Starting... [%s]\n", selectedPlugin.get()->title);
+//                            selectedPlugin->Run(EditorInstance::GetSingleton());
+//                        }
+//                    }
+//                }
+//            }
+//        }
+    }
+
     void Draw(){
         preDraw();
 
@@ -420,6 +569,9 @@ public:
             winBrowser();
         if(win->console)
             winConsole();
+        if(win->plugmgr)
+            PluginMGRWindow();
+
 //        cout << "End Draw" << endl;
 
         postDraw();
@@ -527,7 +679,6 @@ public:
         (void)x; (void)y; // Unused
     }
 
-
 };
 
 void editorinit(){
@@ -547,6 +698,9 @@ void editorspecialUp(int key, int x, int y){
 }
 void editormouse(int button, int state, int x, int y){
     EditorUI::getSingleton()->mouse(button, state, x, y);
+}
+void editormousewheel(int button, int dir, int x, int y){
+    EditorUI::getSingleton()->MouseWheel(button, dir, x, y);
 }
 void editormove(int x, int y){
     EditorUI::getSingleton()->motion(x, y);

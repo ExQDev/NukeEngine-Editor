@@ -41,9 +41,9 @@ public:
 	
 	
 	template<class T>
-	boost::container::list<T*> GetComponents()
+    bc::list<T*> GetComponents()
 	{
-		boost::container::list<T*> lst;
+        bc::list<T*> lst;
         for(auto cmp : lst)
 			if (auto res = dynamic_cast<T*>(cmp))
 				lst.push_back(res);
@@ -62,6 +62,17 @@ public:
 		for (auto cmp : components)
 			cmp->Update();
 	}
+
+    void SetParent(GameObject* newparent){
+        newparent->children.push_back(this);
+        parent = newparent;
+    }
+
+    void AddChild(GameObject* newChild){
+        children.push_back(newChild);
+        newChild->parent = this;
+    }
+
 	void Reset() {}
 	void Pause() {}
 	void Destroy() 
@@ -70,7 +81,7 @@ public:
 		{
 			x->Destroy();
 		}
-		parent->gameobject->children.remove(this);
+        parent->gameobject->children.remove(this);
         delete this;
 	}
 

@@ -1,8 +1,8 @@
 #ifndef NUKEOGL_H
 #define NUKEOGL_H
 #include "../irender.h"
-#include "../../input/keyboard.h"
-#include "../../input/mouse.h"
+#include <input/keyboard.h>
+#include <input/mouse.h>
 #include <GL/glew.h>
 #include <GL/gl.h>
 #include <GL/glut.h>
@@ -18,6 +18,7 @@ void oglspecialkeyboard(int key, int x, int y);
 void oglkeyboardup(unsigned char c, int x, int y);
 void oglspecialkeyboardup(int key, int x, int y);
 void oglmouse (int button, int state, int x, int y);
+void oglmousescroll(int button, int dir, int x, int y);
 void oglreshape(int width, int height);
 void oglidle(void);
 void ogldisplay(void);
@@ -36,6 +37,8 @@ private:
 
     static NukeOGL* _main;
 
+    GLuint FramebufferName = 0;
+    int w,h;
 public:
     NukeOGL(){}
     ~NukeOGL(){}
@@ -45,9 +48,11 @@ public:
     b::function<void(int key, int x, int y)> _UIspecial;
     b::function<void(int key, int x, int y)> _UIspecialUp;
     b::function<void(int button, int state, int x, int y)> _UImouse;
+    b::function<void(int button, int dir, int x, int y)> _UImouseWheel;
     b::function<void(int x, int y)> _UImove;
     b::function<void(int x, int y)> _UIpmove;
     b::function<void(int w, int h)> _UIreshape;
+    GLuint renderedTexture;
 
     static NukeOGL* getSingleton()
     {
@@ -112,6 +117,30 @@ public:
         Mouse::getSingleton()->key(button,state,x,y);
         if(_UImouse)
             _UImouse(button,state,x,y);
+        if (state == GLUT_UP )
+        {
+            int wheelDir = 0;
+            if ( button == 3 )
+            {
+                wheelDir = 1;
+//                printf("Wheel Up\n");
+            }
+            else if( button == 4 )
+            {
+                wheelDir = -1;
+//                printf("Wheel Down\n");
+            }
+            Mouse::getSingleton()->wheel(button, wheelDir, x, y);
+            if(_UImouseWheel)
+                _UImouseWheel(button, wheelDir, x, y);
+        }
+    }
+
+    void mousescroll(int button, int dir, int x, int y){
+//        cout << "NUKEOGL MWheel" << endl;
+        Mouse::getSingleton()->wheel(button,dir,x,y);
+        if(_UImouseWheel)
+            _UImouseWheel(button,dir,x,y);
     }
 
     void timer(){
@@ -124,7 +153,8 @@ public:
             _UIreshape(w,h);
 
         glViewport(0, 0, w, h);
-
+        this->width = w;
+        this->height = h;
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         //gluOrtho2D(0, width, 0, height);
@@ -137,6 +167,8 @@ public:
         cout << "Render initialization..." << endl;
         cout << "Render engine: " << getEngine() << endl;
         cout << "NukeOGL version: " << getVersion() << endl;
+        this->width = w;
+        this->height = h;
         char *myargv [1];
         int myargc=1;
         myargv[0] = strdup("NukeEngine Editor");
@@ -159,22 +191,39 @@ public:
         glutReshapeFunc(oglreshape);
         glutDisplayFunc(ogldisplay);
         glutIdleFunc(oglidle);
+        glutMouseWheelFunc(oglmousescroll);
         glewInit();
 
         if(_UIinit)
             _UIinit();
 
+        if(NukeOGL::getSingleton() != this){
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_DEPTH_TEST);
+            glGenFramebuffers(1, &FramebufferName);
+            glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
+            glGenTextures(1, &renderedTexture);
+            glBindTexture(GL_TEXTURE_2D, renderedTexture);
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, renderedTexture, 0);
+        }
+
         cout << "Initialization finished" << endl;
-        glutMainLoop();
         return 0;
     }
 
     void loop()
     {
-        while(true){
-            usleep(50);
-            render();
-        }
+        glutMainLoop();
+//        while(true){
+//            usleep(50);
+//            render();
+//        }
     }
 
     int render()
@@ -182,6 +231,10 @@ public:
         //cout << "Render" << endl;
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glClearColor(0, 0, 0, 1.0);
+
+        if(NukeOGL::getSingleton() != this){
+           glBindTexture(GL_TEXTURE_2D, renderedTexture);
+        }
 
         if(_onRender)
             _onRender();
@@ -192,8 +245,13 @@ public:
         }
 
 //        glFlush();
+
         glutSwapBuffers();
         glutPostRedisplay();
+
+         if(NukeOGL::getSingleton() != this){
+            glBindTexture(GL_TEXTURE_2D, 0);
+         }
         //cout << "End Render" << endl;
         return 0;
     }
@@ -244,6 +302,12 @@ void oglspecialkeyboardup(int key, int x, int y) {
 void oglmouse (int button, int state, int x, int y) {
     NukeOGL::getSingleton()->mouse(button,state,x,y);
 }
+
+void oglmousescroll (int button, int dir, int x, int y) {
+//    cout << "OGL MWheel" << endl;
+    NukeOGL::getSingleton()->mousescroll(button,dir,x,y);
+}
+
 
 void oglreshape(int width, int height)
 {
