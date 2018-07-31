@@ -1,17 +1,19 @@
 #pragma once
 #ifndef NUKEE_EDITOR_INSTANCE_H
 #define NUKEE_EDITOR_INSTANCE_H
-#include <API/Model/Include.h>
+#include "AppInstance.h"
 #include "EditorMenu/MenuStrip.h"
 
 class EditorInstance : public AppInstance
 {
 protected:
-	EditorInstance() {}
+    EditorInstance() {
+        if(!menuStrip)
+            menuStrip = new MenuStrip();
+    }
 	~EditorInstance() {}
 public:
-//	struct nkc* nkc_handle;
-
+    bool isEditor(){ return true; }
 	MenuStrip* menuStrip;
 	GameObject* selectedInHieararchy;
 	

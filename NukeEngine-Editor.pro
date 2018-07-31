@@ -5,7 +5,7 @@ CONFIG -= qt
 
 DEFINES += GLM_ENABLE_EXPERIMENTAL EDITOR
 
-LIBS += -L/usr/local/lib -lglut -lGL -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua
+LIBS += -L/usr/local/lib -lglut -lGL -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl
 
 INCLUDEPATH += deps/imgui
 
@@ -48,7 +48,6 @@ HEADERS += \
     render/opengl/nukeogl.h \
     render/irender.h \
     config.h \
-    API/Model/AppInstance.h \
     API/Model/Camera.h \
     API/Model/Clock.h \
     API/Model/Collider.h \
@@ -78,5 +77,6 @@ HEADERS += \
     interface/EditorMenu/MenuStrip.h \
     interface/EditorInstance.h \
     interface/NUKEEInteface.h \
-    interface/Modular.h
+    interface/Modular.h \
+    interface/AppInstance.h
 

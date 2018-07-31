@@ -4,6 +4,7 @@
 #include <boost/dll.hpp>
 using namespace boost;
 
+#include "AppInstance.h"
 #include "EditorInstance.h"
 
 #define API extern "C" BOOST_SYMBOL_EXPORT

@@ -2,7 +2,8 @@
 #ifndef NUKEE_APPINSTANCE_H
 #define NUKEE_APPINSTANCE_H
 #include <boost/thread.hpp>
-#include "Include.h"
+#include "../API/Model/Camera.h"
+#include "../API/Model/Scene.h"
 
 class AppInstance
 {
@@ -15,6 +16,7 @@ protected:
 public:
 	
 	Scene* currentScene;
+    virtual bool isEditor(){ return false ;}
 	static AppInstance* GetSingleton() 
 	{
 		static AppInstance instance;

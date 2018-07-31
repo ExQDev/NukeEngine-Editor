@@ -3,6 +3,7 @@
 #include <input/keyboard.h>
 #include <config.h>
 #include <editor/editorui.h>
+#include <interface/Modular.h>
 #ifdef EDITOR
 #include <interface/EditorInstance.h>
 #else
@@ -106,11 +107,9 @@ int main()
     *keyboard &= keyboard2;
     *keyboard *= special;
     *keyboard |= specialup;
-//    InitModules(EditorInstance::GetSingleton());
     auto gl = (NukeOGL*)render;
 
 //    testRender(gl);
-
     gl->_UIinit = editorinit;
     gl->_UIkeyaboardUp = editorkeyaboardUp;
     gl->_UIkeyboard = editorkeyboard;
@@ -121,15 +120,18 @@ int main()
     gl->_UIreshape = editorreshape;
     gl->_UIspecial = editorspecial;
     gl->_UIspecialUp = editorspecialUp;
-
 //    testRender(gl);
+    render->setOnGUI(editorDraw);
+    render->init(config->window.w, config->window.h);
+
     InitEngine();
+    InitModules(EditorInstance::GetSingleton());
     CreateDemoObjects();
+
     for(auto g : EditorInstance::GetSingleton()->currentScene->hierarchy)
         PrintHierarchy(g, 0);
 
-    render->setOnGUI(editorDraw);
-    render->init(config->window.w, config->window.h);
+
     render->loop();
     cout << "shit down..." << endl;
     Unload();

@@ -36,12 +36,14 @@ void InitModules(EditorInstance* instance)
 	{
 		if (!bfs::is_directory(p.path()))
 		{
-            cout << p.path().extension().concat("\n").generic_string().c_str() << endl;
-			if (p.path().extension() == ".dll")
+            //cout << p.path().extension().concat("\n").generic_string().c_str() << endl;
+            if (p.path().extension() == ".so")
 			{
-                cout << bfs::path(p.path()).concat("\n").generic_string().c_str() << endl;
+                cout << p.path().filename().concat("\n").generic_string().c_str() << endl;
                 boost::shared_ptr<NUKEModule> plugin;
-                plugin = dll::import<NUKEModule>(p.path(), "plugin");
+                std::string s = "";
+                plugin = dll::import<NUKEModule>("modules/" + p.path().filename().generic_string(), "plugin");
+                cout << plugin << endl;
 				plugin.get()->modulePath = p.path().generic_string();
 				modules.push_back(plugin);
                 boost::thread(boost::bind(&NUKEModule::Run, plugin.get(), instance));

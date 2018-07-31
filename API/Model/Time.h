@@ -1,11 +1,6 @@
 #pragma once
 #ifndef NUKEE_TIME_H
 #define NUKEE_TIME_H
-#include "Include.h"
-
-#ifndef WIN32
-#define uint8_t int
-#endif
 
 class Time
 {
@@ -49,9 +44,9 @@ public:
 	//Total game days
 	long long unsigned int totalgd = 0;
 
-	uint8_t hour;
-	uint8_t minute;
-	uint8_t sec;
+    int hour;
+    int minute;
+    int sec;
 
 	void TickMonth() 
 	{
@@ -193,7 +188,7 @@ public:
 		woy = 1;
 	}
 	
-	void Init(double gtr, int day, int month, int year, uint8_t hour) 
+    void Init(double gtr, int day, int month, int year, int hour)
 	{
 		Time::gtr = gtr;
 		Time::day = day;
@@ -202,7 +197,7 @@ public:
 		Time::hour = hour;
 	}
 	
-	void Init(double gtr, int day, int month, int year, uint8_t hour, uint8_t minute) 
+    void Init(double gtr, int day, int month, int year, int hour, int minute)
 	{
 		Time::gtr = gtr;
 		Time::day = day;
@@ -212,7 +207,7 @@ public:
 		Time::minute = minute;
 	}
 
-	void Init(double gtr, int day, int month, int year, uint8_t hour, uint8_t minute, uint8_t sec) 
+    void Init(double gtr, int day, int month, int year, int hour, int minute, int sec)
 	{
 		Time::gtr = gtr;
 		Time::day = day;
@@ -239,7 +234,7 @@ public:
 //int Time::dow = 0;
 //long double Time::totalgt = 0;
 //long long unsigned int Time::totalgd = 0;
-//uint8_t Time::hour = 0;
-//uint8_t Time::minute = 0;
-//uint8_t Time::sec = 0;
+//int Time::hour = 0;
+//int Time::minute = 0;
+//int Time::sec = 0;
 #endif // !NUKEE_TIME_H

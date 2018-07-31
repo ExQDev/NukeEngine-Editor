@@ -6,7 +6,7 @@
 #include <gui/gui.h>
 #include <config.h>
 #include <interface/EditorInstance.h>
-//#include <interface/Modular.h>
+#include <interface/Modular.h>
 #include <boost/container/list.hpp>
 
 
@@ -112,12 +112,12 @@ void TogglePluginMGR(){
     Config::getSingleton()->window.plugmgr = !Config::getSingleton()->window.plugmgr;
 }
 
-//bool PlugTitleGetter(void* data, int n, const char** out_text)
-//{
-//  const bc::vector<boost::shared_ptr<NUKEModule>>* v = (bc::vector<boost::shared_ptr<NUKEModule>>*)data;
-//  *out_text = v->at(n).get()->title;
-//  return true;
-//}
+bool PlugTitleGetter(void* data, int n, const char** out_text)
+{
+  const bc::vector<boost::shared_ptr<NUKEModule>>* v = (bc::vector<boost::shared_ptr<NUKEModule>>*)data;
+  *out_text = v->at(n).get()->title;
+  return true;
+}
 
 bool HierarchyGetter(void* data, int n, const char** out_text)
 {
@@ -134,8 +134,8 @@ private:
     EditorUI() {}
     ~EditorUI() {}
     struct NukeWindow * win;
-    //boost::shared_ptr<NUKEModule> selectedPlugin = nullptr;
-    int selectedPluginIndex = 0;
+    boost::shared_ptr<NUKEModule> selectedPlugin = nullptr;
+    int selectedPluginIndex = -1;
     int selectedGameObjectIndex = -1;
 
 public:
@@ -264,21 +264,6 @@ public:
         EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other", "Deep tools", TogglePluginMGR);
         EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other/One more level", "...", TogglePluginMGR);
         EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other/One more level/Last", "Wow", TogglePluginMGR);
-//        for (auto rootElement : EditorInstance::GetSingleton()->menuStrip->strip)
-//        {
-//            cout << rootElement->name << endl;
-//            if(rootElement->subitems.size() > 0)
-//                for (auto subitem : rootElement->subitems)
-//                {
-//                    cout << "\t" << subitem->name << endl;
-//                    if(subitem->subitems.size() > 0)
-//                        for (auto it : subitem->subitems)
-//                        {
-//                            cout << "\t\t" << it->name << endl;
-
-//                        }
-//                }
-//        }
     }
 
     bool EditorSubMenu(MenuItem* item)
@@ -502,59 +487,53 @@ public:
 
     void PluginMGRWindow()
     {
-//        if (ImGui::Begin("Plugins"))
-//        {
-//            ImGui::Columns(2);
-//            ImGui::ListBox("PluginsList", &selectedPluginIndex, PlugTitleGetter, static_cast<void*>(&modules), modules.size());
-////            {
-////                for (boost::shared_ptr<NUKEModule> mod : modules) {
-////                    if(mod)
-////                        if (nk_select_label(ctx, mod.get()->title, NK_TEXT_LEFT, selectedPlugin == mod))
-////                            selectedPlugin = mod;
-////                }
-////            };
-//            ImGui::NextColumn();
-//            if (ImGui::CollapsingHeader("PluginDetailes"))
-//            {
-//                if (selectedPlugin)
-//                {
-//                    ImGui::Text(selectedPlugin->title);
-//                    ImGui::Text(selectedPlugin->author);
+        if (ImGui::Begin("Plugins"))
+        {
+            ImGui::Columns(2);
+            ImGui::ListBox("", &selectedPluginIndex, PlugTitleGetter, static_cast<void*>(&modules), modules.size());
+            if(selectedPluginIndex >= 0)
+                if(selectedPlugin != modules.at(selectedPluginIndex))
+                    selectedPlugin = modules.at(selectedPluginIndex);
 
-//                    ImGui::Text(selectedPlugin->version);
+            ImGui::NextColumn();
+            if (ImGui::CollapsingHeader("PluginDetailes"))
+            {
+                if (selectedPlugin)
+                {
+                    ImGui::Text(selectedPlugin->title);
+                    ImGui::Text(selectedPlugin->author);
+                    ImGui::Text(selectedPlugin->version);
+                    ImGui::Text(selectedPlugin->site);
+                    ImGui::Text(selectedPlugin->description);
 
-//                    ImGui::Text(selectedPlugin->site);
-
-
-//                    ImGui::Text(selectedPlugin->description);
-
-//                    ImGui::Columns(2);
-//                    if(selectedPlugin.get()->HasSettings())
-//                        if (ImGui::Button("Settings"))
-//                        {
-//                            printf("Opening settings... [%s]\n", selectedPlugin.get()->title);
-//                            selectedPlugin->Settings();
-//                        }
-//                    ImGui::NextColumn();
-//                    if (!selectedPlugin.get()->stopped)
-//                    {
-//                        if (ImGui::Button("Shutdown"))
-//                        {
-//                            printf("Shutting down... [%s]\n", selectedPlugin.get()->title);
-//                            selectedPlugin->Shutdown();
-//                        }
-//                    }
-//                    else
-//                    {
-//                        if (ImGui::Button("Run"))
-//                        {
-//                            printf("Starting... [%s]\n", selectedPlugin.get()->title);
-//                            selectedPlugin->Run(EditorInstance::GetSingleton());
-//                        }
-//                    }
-//                }
-//            }
-//        }
+                    ImGui::Columns(2);
+                    if(selectedPlugin.get()->HasSettings())
+                        if (ImGui::Button("Settings"))
+                        {
+                            printf("Opening settings... [%s]\n", selectedPlugin.get()->title);
+                            selectedPlugin->Settings();
+                        }
+                    ImGui::NextColumn();
+                    if (!selectedPlugin.get()->stopped)
+                    {
+                        if (ImGui::Button("Shutdown"))
+                        {
+                            printf("Shutting down... [%s]\n", selectedPlugin.get()->title);
+                            selectedPlugin->Shutdown();
+                        }
+                    }
+                    else
+                    {
+                        if (ImGui::Button("Run"))
+                        {
+                            printf("Starting... [%s]\n", selectedPlugin.get()->title);
+                            selectedPlugin->Run(EditorInstance::GetSingleton());
+                        }
+                    }
+                }
+            }
+            ImGui::End();
+        }
     }
 
     void Draw(){
