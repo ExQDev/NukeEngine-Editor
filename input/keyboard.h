@@ -51,7 +51,7 @@ private:
     }
 public:
 
-    static KeyBoard* getSigleton()
+    static KeyBoard* getSingleton()
     {
         static KeyBoard instance;
         return &instance;

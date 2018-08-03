@@ -7,8 +7,13 @@ namespace b = boost;
 
 class iRender
 {
+    friend class NukeOGL;
+private:
+    static iRender* _instance;
 public:
-//    static iRender* getSingleton();
+    static iRender* getSingleton(){
+        return _instance;
+    }
     Transform* transform;
     int width, height;
     float fov, Far, Near;
@@ -22,4 +27,7 @@ public:
     virtual void setOnRender(b::function<void(void)> cb) = 0;
 //    virtual ~iRender() = 0;
 };
+
+iRender* iRender::_instance;
+
 #endif // IRENDER_H

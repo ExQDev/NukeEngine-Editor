@@ -12,6 +12,7 @@
 #include <iostream>
 
 using namespace std;
+namespace bc = boost::container;
 
 void oglkeyboard(unsigned char c, int x, int y);
 void oglspecialkeyboard(int key, int x, int y);
@@ -30,7 +31,7 @@ void ogltimer(int t);
 class NukeOGL : public iRender
 {
 private:
-    b::function<void()> _onClose;
+    bc::list<b::function<void()>> _onClose;
     b::function<void()> _physTrigger;
     b::function<void(void)> _onRender;
     b::function<void(void)> _onGUI;
@@ -40,7 +41,15 @@ private:
     GLuint FramebufferName = 0;
     int w,h;
 public:
-    NukeOGL(){}
+    NukeOGL(){
+        if(_main)
+            _instance = _main;
+        else
+        {
+            _main = this;
+            _instance = _main;
+        }
+    }
     ~NukeOGL(){}
     b::function<void()> _UIinit;
     b::function<void(unsigned char c, int x, int y)> _UIkeyboard;
@@ -62,6 +71,10 @@ public:
         return _main;
     }
 
+    void setOnClose(b::function<void()> cb){
+        _onClose.push_back(cb);
+    }
+
     void setOnGUI(b::function<void(void)> cb){
         _onGUI = cb;
 //        cout << cb << " -- onGUI[" << this << "]" << endl;
@@ -74,8 +87,9 @@ public:
 
     void close()
     {
-        if(_onClose)
-            _onClose();
+        if(_onClose.size() > 0)
+            for(auto cb : _onClose)
+                cb();
     }
 
     void move(int x, int y)
@@ -93,22 +107,22 @@ public:
     }
 
     void keyboard(unsigned char c, int x, int y) {
-        KeyBoard::getSigleton()->key(c,x,y);
+        KeyBoard::getSingleton()->key(c,x,y);
         if(_UIkeyboard)
             _UIkeyboard(c,x,y);
     }
     void keyboardUp(unsigned char c, int x, int y) {
-        KeyBoard::getSigleton()->keyup(c,x,y);
+        KeyBoard::getSingleton()->keyup(c,x,y);
         if(_UIkeyaboardUp)
             _UIkeyaboardUp(c,x,y);
     }
     void special(int key, int x, int y){
-        KeyBoard::getSigleton()->special(key, x, y);
+        KeyBoard::getSingleton()->special(key, x, y);
         if(_UIspecial)
             _UIspecial(key, x, y);
     }
     void specialup(int key, int x, int y){
-        KeyBoard::getSigleton()->specialup(key, x, y);
+        KeyBoard::getSingleton()->specialup(key, x, y);
         if(_UIspecialUp)
             _UIspecialUp(key,x,y);
     }

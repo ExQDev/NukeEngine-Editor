@@ -101,7 +101,7 @@ void Unload()
 int main()
 {
     iRender * render = NukeOGL::getSingleton();
-    KeyBoard* keyboard = KeyBoard::getSigleton();
+    KeyBoard* keyboard = KeyBoard::getSingleton();
     Config* config = Config::getSingleton();
     *keyboard += keyboard1;
     *keyboard &= keyboard2;
@@ -125,14 +125,15 @@ int main()
     render->init(config->window.w, config->window.h);
 
     InitEngine();
+    cout << "> Render: " << render << endl;
     InitModules(EditorInstance::GetSingleton());
     CreateDemoObjects();
 
     for(auto g : EditorInstance::GetSingleton()->currentScene->hierarchy)
         PrintHierarchy(g, 0);
 
-
     render->loop();
+
     cout << "shit down..." << endl;
     Unload();
     render->deinit();

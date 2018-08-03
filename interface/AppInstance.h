@@ -4,6 +4,10 @@
 #include <boost/thread.hpp>
 #include "../API/Model/Camera.h"
 #include "../API/Model/Scene.h"
+#include "../input/keyboard.h"
+#include "../input/mouse.h"
+#include "../render/irender.h"
+#include "../render/opengl/nukeogl.h"
 
 class AppInstance
 {
@@ -11,11 +15,18 @@ protected:
 	AppInstance() 
 	{
 		currentScene = new Scene();
+        keyboard = KeyBoard::getSingleton();
+        mouse = Mouse::getSingleton();
+        render = iRender::getSingleton();
 	}
 	~AppInstance() {}
 public:
 	
 	Scene* currentScene;
+    KeyBoard* keyboard;
+    Mouse* mouse;
+    iRender* render;
+
     virtual bool isEditor(){ return false ;}
 	static AppInstance* GetSingleton() 
 	{
