@@ -18,8 +18,9 @@ private:
     bool moveKey, crosshair;
     float lx=0.0f,ly=0.0f,lz=0.0f;
     const float g_rotation_speed = M_PI/180*0.2;
-    bool invertMouse;
+
 public:
+    bool invertMouse = false;
     iRender * renderer = nullptr;
 	Texture renderTex;
 	int r_width = 640, r_height = 480;
@@ -27,7 +28,7 @@ public:
 	unsigned long int renderLayers;
     bool freeMode;
 
-	Camera()
+    Camera() : Component("Camera")
 	{}
 
     Camera(iRender *renderer): Component("Camera")
@@ -49,7 +50,7 @@ public:
             cout << "[!] Camera of main renderer" << endl;
 	}
 	
-    Camera(GameObject* parent, iRender *renderer)
+    Camera(GameObject* parent, iRender *renderer) : Component("Camera")
 	{
 		this->renderer = renderer;
 		Init(parent);
@@ -157,6 +158,7 @@ public:
 		renderer->Far = _far;
 		renderer->Near = _near;
         renderer->_crosshair = crosshair;
+        renderer->update();
         ProcessKeyboard();
 	}
 	void Reset() {}

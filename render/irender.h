@@ -22,6 +22,7 @@ public:
     virtual int init(int w, int h) = 0;
     virtual void loop() = 0;
     virtual void deinit() = 0;
+    virtual void update() = 0;
     virtual char* getEngine() = 0;
     virtual char* getVersion() = 0;
     virtual void setOnGUI(b::function<void(void)> cb) = 0;

@@ -469,6 +469,17 @@ public:
 
     }
 
+    void CamComponent(Camera* cam){
+        ImGui::InputInt("Width", &cam->renderer->width);
+        ImGui::InputInt("Height", &cam->renderer->height);
+        float __fov = cam->fov * M_PI / 180;
+        ImGui::SliderAngle("FOV", &__fov, 0, 180);
+        cam->fov = __fov * 180 / M_PI;
+        ImGui::DragFloat("Near", &cam->_near);
+        ImGui::DragFloat("Far", &cam->_far);
+        ImGui::Checkbox("Free mode", &cam->freeMode);
+    }
+
     void winHierarchy(){
         ImGui::Begin("Hierarchy");
         //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&EditorInstance::GetSingleton()->currentScene->hierarchy), EditorInstance::GetSingleton()->currentScene->hierarchy.size());
@@ -478,8 +489,47 @@ public:
 
     void winInspector(){
         ImGui::Begin("Inspector");
-        //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&EditorInstance::GetSingleton()->currentScene->hierarchy), EditorInstance::GetSingleton()->currentScene->hierarchy.size());
-        //DisplayRecursiveGameObjectHierarchy(EditorInstance::GetSingleton()->currentScene->hierarchy);
+        if(auto sltd = EditorInstance::GetSingleton()->selectedInHieararchy){
+            char *__name = new char[64];
+            strcpy(__name, sltd->name.c_str());
+            ImGui::InputText("Name", __name, 64);
+            sltd->name = __name;
+
+            char *__tag= new char[64];
+            strcpy(__tag, sltd->tag.c_str());
+            ImGui::InputText("Tag", __tag, 64);
+            sltd->tag = __tag;
+
+            ImGui::BeginGroup();
+            ImGui::Text("Transform");
+            ImGui::Text("Position");
+            ImGui::Columns(3);
+            ImGui::InputDouble("x",&sltd->transform.position.x); ImGui::NextColumn();
+            ImGui::InputDouble("y",&sltd->transform.position.y); ImGui::NextColumn();
+            ImGui::InputDouble("z",&sltd->transform.position.z);
+            ImGui::EndColumns();
+
+            ImGui::Text("Rotation");
+            ImGui::Columns(2);
+            ImGui::InputDouble("x",&sltd->transform.rotation.x);
+            ImGui::InputDouble("y",&sltd->transform.rotation.y); ImGui::NextColumn();
+            ImGui::InputDouble("z",&sltd->transform.rotation.z);
+            ImGui::InputDouble("w",&sltd->transform.rotation.w);
+            ImGui::EndColumns();
+
+            ImGui::EndGroup();
+
+            if(ImGui::CollapsingHeader("Components")){
+                for(auto cmp : sltd->components){
+                    if(ImGui::CollapsingHeader(cmp->name)){
+                        if(auto cam = dynamic_cast<Camera*>(cmp)){
+                            CamComponent(cam);
+                        }
+                    }
+                }
+            }
+            //DisplayRecursiveGameObjectHierarchy(EditorInstance::GetSingleton()->currentScene->hierarchy);
+        }
         ImGui::End();
     }
 
@@ -526,7 +576,7 @@ public:
                     ImGui::Text(selectedPlugin->author);
                     ImGui::Text(selectedPlugin->version);
                     ImGui::Text(selectedPlugin->site);
-                    ImGui::Text(selectedPlugin->description);
+                    ImGui::TextWrapped(selectedPlugin->description);
 
                     if(selectedPlugin.get()->HasSettings())
                     {

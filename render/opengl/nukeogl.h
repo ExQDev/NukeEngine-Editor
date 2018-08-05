@@ -38,9 +38,9 @@ private:
 
     static NukeOGL* _main;
 
-    unsigned int fbo; // The frame buffer object
-    unsigned int fbo_depth; // The depth buffer for the frame buffer object
-    unsigned int fbo_texture; // The texture object to write our frame buffer object to
+    GLuint fbo; // The frame buffer object
+    GLuint fbo_depth; // The depth buffer for the frame buffer object
+    GLuint fbo_texture; // The texture object to write our frame buffer object to
 
 public:
     NukeOGL(){
@@ -178,8 +178,15 @@ public:
         this->height = h;
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-//        gluOrtho2D(0, w, 0, h);
         gluPerspective(fov, (GLfloat)w / (GLfloat)h, Near, Far);
+        glMatrixMode(GL_MODELVIEW);
+    }
+
+    void update(){
+        glViewport(0, 0, width, height);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(fov, (GLfloat)width / (GLfloat)height, Near, Far);
         glMatrixMode(GL_MODELVIEW);
     }
 
@@ -338,7 +345,7 @@ public:
         }
 #endif
 
-        glClearColor(0, 0, 0, 1.0);
+        //glClearColor(0, 0, 0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glLoadIdentity ();
 

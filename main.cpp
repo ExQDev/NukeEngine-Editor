@@ -16,12 +16,12 @@ using namespace std;
 
 void keyboard1(unsigned char c, int x, int y)
 {
-    cout << "[1] key pressed! " << c << endl;
+    //cout << "[1] key pressed! " << c << endl;
 }
 
 void keyboard2(unsigned char c, int x, int y)
 {
-    cout << "[2] ( " << x << ", " << y << ")" << endl;
+    //cout << "[2] ( " << x << ", " << y << ")" << endl;
 }
 
 void special(int key, int x, int y){
@@ -30,15 +30,18 @@ void special(int key, int x, int y){
     {
         glutFullScreenToggle();
     }
-    if(key == 5)
+    if(key == 12)
     {
-        std::vector<unsigned char> out;
-        auto renTex = (NukeOGL::getSingleton()->getRenderTexture());
-        lodepng::encode(out,
-                        (unsigned char*)renTex,
-                        NukeOGL::getSingleton()->width,
-                        NukeOGL::getSingleton()->height);
-        lodepng::save_file(out, "render.png");
+//        std::vector<unsigned char> out;
+//        auto renTex = (NukeOGL::getSingleton()->getRenderTexture());
+//        int w = NukeOGL::getSingleton()->width;
+//        int h = NukeOGL::getSingleton()->height;
+//        unsigned char *rent = (unsigned char*)malloc(sizeof(unsigned char) * w * h * 3);
+//        void* rt = renTex;
+//        memcpy(rent, rt, 3*h*w);
+//        cout << "Allocated: " << rent << endl;
+//        lodepng::encode(out, rent, w, h);
+//        lodepng::save_file(out, "render.png");
     }
 }
 
