@@ -16,7 +16,8 @@ public:
     }
     Transform* transform;
     int width, height;
-    float fov, Far, Near;
+    bool _crosshair;
+    float fov = 90, Far = 1000, Near = 0.3f;
     virtual int render() = 0;
     virtual int init(int w, int h) = 0;
     virtual void loop() = 0;

@@ -24,9 +24,30 @@ public:
 
 	Vector3 forward() 
 	{
-		glm::vec3 fwd = glm::rotate(glm::quat(rotation.w, rotation.x, rotation.y, rotation.z), glm::vec3(Vector3::forward.x, Vector3::forward.y, Vector3::forward.z));
-		return Vector3(fwd.x, fwd.y, fwd.z);
-	}
+        direction();
+    }
+
+    Vector3 right()
+    {
+        return Vector3{cos(rotation.y - M_PI_2),
+                    0,
+                    sin(rotation.y - M_PI_2)} * -1.0;
+    }
+
+    Vector3 up()
+    {
+        auto r = right(),
+                d = direction();
+        auto u = glm::cross( glm::vec3{ r.x, r.y, r.z }, { d.x, d.y, d.z} );
+        return { u.x, u.y, u.z};
+    }
+
+    Vector3 direction(){
+        return Vector3(cos(rotation.y) * cos(rotation.x),
+                       sin(rotation.x),
+                       cos(rotation.x) * sin(rotation.y));
+    }
+
 
 	void Destroy() 
 	{

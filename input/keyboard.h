@@ -17,9 +17,11 @@ private:
     list<b::function<void(int key, int x, int y)>> _onSpecialKey;
     list<b::function<void(unsigned char c, int x, int y)>> _onKeyUp;
     list<b::function<void(int key, int x, int y)>> _onSpecialKeyUp;
+    bool* keyStates = new bool[256];
 
     void key(unsigned char c, int x, int y)
     {
+        keyStates[c] = true;
         for(auto f : _onKey)
         {
             f(c, x, y);
@@ -36,6 +38,7 @@ private:
 
     void keyup(unsigned char c, int x, int y)
     {
+        keyStates[c] = false;
         for(auto f : _onKeyUp)
         {
             f(c, x, y);
@@ -57,7 +60,9 @@ public:
         return &instance;
     }
 
-
+    bool getKeyPressed(unsigned char c){
+        return keyStates[c];
+    }
 
     KeyBoard* operator+=(b::function<void(unsigned char c, int x, int y)> onKey)
     {

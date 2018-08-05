@@ -50,6 +50,10 @@ public:
 		return lst;
 	}
 
+    void AddComponent(Component* cmp){
+        components.push_back(cmp);
+    }
+
 	void Init(GameObject* parent) 
 	{
 		this->parent = parent;

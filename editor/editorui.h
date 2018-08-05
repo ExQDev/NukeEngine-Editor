@@ -421,6 +421,9 @@ public:
         ImGui::MenuItem("Hierarchy", "Ctrl+Alt+H", &win->hierarchy);
         ImGui::MenuItem("Console", "Ctrl+Alt+C", &win->console);
         ImGui::MenuItem("Browser", "Ctrl+Alt+B", &win->browser);
+        ImGui::MenuItem("Render", "Ctrl+Alt+R", &win->render);
+        ImGui::MenuItem("Inspector", "Ctrl+Alt+I", &win->inspector);
+
         ImGui::MenuItem("About", "", &win->about);
     }
 
@@ -470,6 +473,25 @@ public:
         ImGui::Begin("Hierarchy");
         //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&EditorInstance::GetSingleton()->currentScene->hierarchy), EditorInstance::GetSingleton()->currentScene->hierarchy.size());
         DisplayRecursiveGameObjectHierarchy(EditorInstance::GetSingleton()->currentScene->hierarchy);
+        ImGui::End();
+    }
+
+    void winInspector(){
+        ImGui::Begin("Inspector");
+        //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&EditorInstance::GetSingleton()->currentScene->hierarchy), EditorInstance::GetSingleton()->currentScene->hierarchy.size());
+        //DisplayRecursiveGameObjectHierarchy(EditorInstance::GetSingleton()->currentScene->hierarchy);
+        ImGui::End();
+    }
+
+    void winRender(){
+        ImGui::Begin("Render");
+        ImVec2 pos = ImGui::GetWindowPos();
+        auto tex = dynamic_cast<NukeOGL*>(EditorInstance::GetSingleton()->render)->getRenderTexture();
+        ImVec2 maxPos = ImVec2(pos.x + ImGui::GetWindowSize().x, pos.y + ImGui::GetWindowSize().y);
+        ImGui::GetWindowDrawList()->AddImage((void *)tex,
+                                             ImVec2(ImGui::GetItemRectMin().x + 0,
+                                            ImGui::GetItemRectMin().y + pos.y),
+                                             maxPos, ImVec2(0,1), ImVec2(1,0));
         ImGui::End();
     }
 
@@ -552,6 +574,10 @@ public:
             winBrowser();
         if(win->console)
             winConsole();
+        if(win->render)
+            winRender();
+        if(win->inspector)
+            winInspector();
         if(win->plugmgr)
             PluginMGRWindow();
 

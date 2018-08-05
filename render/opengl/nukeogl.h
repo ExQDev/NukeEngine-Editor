@@ -38,8 +38,10 @@ private:
 
     static NukeOGL* _main;
 
-    GLuint FramebufferName = 0;
-    int w,h;
+    unsigned int fbo; // The frame buffer object
+    unsigned int fbo_depth; // The depth buffer for the frame buffer object
+    unsigned int fbo_texture; // The texture object to write our frame buffer object to
+
 public:
     NukeOGL(){
         if(_main)
@@ -61,7 +63,6 @@ public:
     b::function<void(int x, int y)> _UImove;
     b::function<void(int x, int y)> _UIpmove;
     b::function<void(int w, int h)> _UIreshape;
-    GLuint renderedTexture;
 
     static NukeOGL* getSingleton()
     {
@@ -69,6 +70,10 @@ public:
         if(!_main)
             _main = new NukeOGL();
         return _main;
+    }
+
+    unsigned int getRenderTexture(){
+        return fbo_texture;
     }
 
     void setOnClose(b::function<void()> cb){
@@ -95,6 +100,7 @@ public:
     void move(int x, int y)
     {
         //cout << "mov [ " << x << ", " << y << " ]" << endl;
+        Mouse::getSingleton()->move(x,y);
         if(_UImove)
             _UImove(x,y);
     }
@@ -102,6 +108,7 @@ public:
     void passmove(int x, int y)
     {
         //cout << "pmov [ " << x << ", " << y << " ]" << endl;
+        Mouse::getSingleton()->pmove(x,y);
         if(_UImove)
             _UImove(x,y);
     }
@@ -171,10 +178,61 @@ public:
         this->height = h;
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
-        //gluOrtho2D(0, width, 0, height);
+//        gluOrtho2D(0, w, 0, h);
+        gluPerspective(fov, (GLfloat)w / (GLfloat)h, Near, Far);
         glMatrixMode(GL_MODELVIEW);
     }
 
+    void initFrameBufferDepthBuffer(void) {
+
+        glGenRenderbuffersEXT(1, &fbo_depth); // Generate one render buffer and store the ID in fbo_depth
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, fbo_depth); // Bind the fbo_depth render buffer
+
+        glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT, width, height); // Set the render buffer storage to be a depth component, with a width and height of the window
+
+        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo_depth); // Set the render buffer of this buffer to the depth buffer
+
+        glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, 0); // Unbind the render buffer
+    }
+
+    void initFrameBufferTexture(void) {
+        glGenTextures(1, &fbo_texture); // Generate one texture
+        glBindTexture(GL_TEXTURE_2D, fbo_texture); // Bind the texture fbo_texture
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL); // Create a standard texture with the width and height of our window
+
+        // Setup the basic texture parameters
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+        // Unbind the texture
+        glBindTexture(GL_TEXTURE_2D, 0);
+    }
+
+    void initFrameBuffer(void) {
+        initFrameBufferDepthBuffer(); // Initialize our frame buffer depth buffer
+
+        initFrameBufferTexture(); // Initialize our frame buffer texture
+
+        glGenFramebuffersEXT(1, &fbo); // Generate one frame buffer and store the ID in fbo
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Bind our frame buffer
+
+        glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, fbo_texture, 0); // Attach the texture fbo_texture to the color buffer in our frame buffer
+
+        glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, fbo_depth); // Attach the depth buffer fbo_depth to our frame buffer
+
+        GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT); // Check that status of our generated frame buffer
+
+        if (status != GL_FRAMEBUFFER_COMPLETE_EXT) // If the frame buffer does not report back as complete
+        {
+            std::cout << "Couldn't create frame buffer" << std::endl; // Output an error to the console
+            exit(0); // Exit the application
+        }
+
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind our frame buffer
+    }
 
     int init(int w, int h)
     {
@@ -206,26 +264,19 @@ public:
         glutDisplayFunc(ogldisplay);
         glutIdleFunc(oglidle);
         glutMouseWheelFunc(oglmousescroll);
+        glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
         glewInit();
 
         if(_UIinit)
             _UIinit();
 
         if(NukeOGL::getSingleton() != this){
-            glEnable(GL_TEXTURE_2D);
-            glEnable(GL_DEPTH_TEST);
-            glGenFramebuffers(1, &FramebufferName);
-            glBindFramebuffer(GL_FRAMEBUFFER, FramebufferName);
-            glGenTextures(1, &renderedTexture);
-            glBindTexture(GL_TEXTURE_2D, renderedTexture);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, renderedTexture, 0);
+            glEnable(GL_TEXTURE_2D); // Enable texturing so we can bind our frame buffer texture
+            glEnable(GL_DEPTH_TEST); // Enable depth testing
+
+
         }
+        initFrameBuffer();
 
         cout << "Initialization finished" << endl;
         return 0;
@@ -240,33 +291,90 @@ public:
 //        }
     }
 
+    void DrawGrid(float HALF_GRID_SIZE)
+    {
+        float floor=0.0;
+        glEnable(GL_LINE_SMOOTH);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+        glBegin(GL_LINES);
+        glColor4f(1.0,1.0,1.0,0.4); /* transparent black -> darker grey */
+        for (int v=-HALF_GRID_SIZE;v<=HALF_GRID_SIZE;v++) {
+            glVertex3f(v,floor,-HALF_GRID_SIZE);
+            glVertex3f(v,floor,+HALF_GRID_SIZE);
+            glVertex3f(-HALF_GRID_SIZE,floor,v);
+            glVertex3f(+HALF_GRID_SIZE,floor,v);
+        }
+        glEnd();
+    }
+
+    void crosshair (void)
+    {
+        glDisable(GL_LIGHTING);
+        glColor3f(1,0,0);
+        glBegin(GL_QUADS);
+            glVertex3f(0.0,-1.0,0.0);
+            glColor3f(0,1,0);
+            glVertex3f(-1000,-1.0,0.0);
+            glColor3f(0,0,1);
+            glVertex3f(-1000,-1.0,-1000);
+            glColor3f(1,1,1);
+            glVertex3f(0.0,-1.0,-1000);
+        glEnd();
+        glEnable(GL_LIGHTING);
+    }
+
     int render()
     {
         //cout << "Render" << endl;
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0, 0, 0, 1.0);
-
+#ifdef EDITOR
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Bind our frame buffer for rendering
+        glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT); // Push our glEnable and glViewport states
+        DrawGrid(100);
+#else
         if(NukeOGL::getSingleton() != this){
-           glBindTexture(GL_TEXTURE_2D, renderedTexture);
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo); // Bind our frame buffer for rendering
+            glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT); // Push our glEnable and glViewport states
         }
+#endif
+
+        glClearColor(0, 0, 0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glLoadIdentity ();
+
+//        glRotated(transform->rotation.y, 1.0,0.0,0.0);  //rotate our camera on teh x-axis (left and right)
+//        glRotated(transform->rotation.x, 0.0,1.0,0.0);  //rotate our camera on the y-axis (up and down)
+//        glTranslated(transform->position.x, transform->position.y, transform->position.z); //translate the screen to the position of our camera
+
+        gluLookAt(transform->position.x,
+                          transform->position.y,
+                          transform->position.z,
+                          transform->position.x + transform->direction().x,
+                          transform->position.y + transform->direction().y,
+                          transform->position.z + transform->direction().z,
+                          0.0,
+                          1.0,
+                          0.0);
 
         if(_onRender)
             _onRender();
 
-        //cout << _onGUI << " -- OnGUI [" << this << "]" << endl;
-        if(_onGUI){
-            _onGUI();
+#ifdef EDITOR
+        glPopAttrib(); // Restore our glEnable and glViewport states
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind our texture
+#else
+        if(NukeOGL::getSingleton() != this){
+            glPopAttrib(); // Restore our glEnable and glViewport states
+            glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0); // Unbind our texture
         }
+#endif
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//        glFlush();
+        if(_onGUI)
+            _onGUI();
 
         glutSwapBuffers();
-        glutPostRedisplay();
-
-         if(NukeOGL::getSingleton() != this){
-            glBindTexture(GL_TEXTURE_2D, 0);
-         }
-        //cout << "End Render" << endl;
+        //glutPostRedisplay();
         return 0;
     }
 
@@ -277,7 +385,7 @@ public:
 
     char* getEngine()
     {
-        return "Open GL";
+        return "Open GL 2.1 - glut";
     }
 
     char* getVersion()

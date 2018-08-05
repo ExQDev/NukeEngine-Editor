@@ -143,7 +143,7 @@ public:
 		this->x = x;
 		this->y = y;
 		this->z = z;
-	}
+    }
 
 	static const Vector3 forward, backward, up, left, right, down, zero, one;
 
@@ -236,7 +236,7 @@ public:
 		return *this;
 	}
 
-	Vector3 operator*(double other)
+    Vector3 operator* (double other) const
 	{
 //		Vector3 tmp = *(Vector3*)&((*(Vector2*)this) * other);
 //		tmp.z = z * other;

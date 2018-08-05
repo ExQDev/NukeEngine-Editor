@@ -16,6 +16,8 @@ private:
 
     list<b::function<void(int button, int state, int x, int y)>> _onKey;
     list<b::function<void(int button, int state, int x, int y)>> _onWheel;
+    list<b::function<void(int x, int y)>> _onMove;
+    list<b::function<void(int x, int y)>> _onPMove;
 
     void key(int button, int state, int x, int y)
     {
@@ -30,6 +32,22 @@ private:
         for(auto f : _onWheel)
         {
             f(button, dir, x, y);
+        }
+    }
+
+    void move(int x, int y)
+    {
+        for(auto f : _onMove)
+        {
+            f(x, y);
+        }
+    }
+
+    void pmove(int x, int y)
+    {
+        for(auto f : _onPMove)
+        {
+            f(x, y);
         }
     }
 
@@ -48,6 +66,16 @@ public:
     Mouse* operator*=(b::function<void(int button, int dir, int x, int y)> onWheel)
     {
         _onWheel.push_back(onWheel);
+    }
+
+    Mouse* operator&=(b::function<void(int x, int y)> onMov)
+    {
+        _onMove.push_back(onMov);
+    }
+
+    Mouse* operator|=(b::function<void(int x, int y)> onPMov)
+    {
+        _onPMove.push_back(onPMov);
     }
 };
 #endif // MOUSE_H

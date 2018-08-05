@@ -6,20 +6,22 @@
 #include <interface/Modular.h>
 #ifdef EDITOR
 #include <interface/EditorInstance.h>
+#include <import/assimporter.h>
 #else
 #include <API/Model/AppInstance.h>
 #endif
+#include <deps/lodepng/lodepng.h>
 
 using namespace std;
 
 void keyboard1(unsigned char c, int x, int y)
 {
-//    cout << "[1] key pressed! " << c << endl;
+    cout << "[1] key pressed! " << c << endl;
 }
 
 void keyboard2(unsigned char c, int x, int y)
 {
-//    cout << "[2] ( " << x << ", " << y << ")" << endl;
+    cout << "[2] ( " << x << ", " << y << ")" << endl;
 }
 
 void special(int key, int x, int y){
@@ -27,6 +29,16 @@ void special(int key, int x, int y){
     if(key == 11)
     {
         glutFullScreenToggle();
+    }
+    if(key == 5)
+    {
+        std::vector<unsigned char> out;
+        auto renTex = (NukeOGL::getSingleton()->getRenderTexture());
+        lodepng::encode(out,
+                        (unsigned char*)renTex,
+                        NukeOGL::getSingleton()->width,
+                        NukeOGL::getSingleton()->height);
+        lodepng::save_file(out, "render.png");
     }
 }
 
@@ -63,6 +75,9 @@ void PrintHierarchy(GameObject* go, int level){
             PrintHierarchy(child, level + 1);
     else
         cout << MultiString("\t", level + 1) << "No children" << endl;
+    if(go->components.size() > 0)
+        for(auto cmp : go->components)
+            cout << MultiString("\t", level + 1) << "+" << cmp->name << endl;
 }
 
 void CreateDemoObjects(){
@@ -83,6 +98,8 @@ void InitEngine()
         GameObject* edcam = new GameObject("Editor Camera");
         iRender* rnd = NukeOGL::getSingleton();
         Camera* edcamc = new Camera(edcam, rnd);
+        edcamc->transform->position = { 0, 10, -10};
+        edcamc->freeMode = true;
         //edcamc->Init(edcam);
         edcam->layer = NUKEE_LAYER_EDITOR;
         EditorInstance::GetSingleton()->currentScene->hierarchy.push_back(edcam);
@@ -96,6 +113,55 @@ void Unload()
     usleep(1000);
     UnloadModules();
 }
+
+//positions of the cubes
+float positionz[10];
+float positionx[10];
+
+void cubepositions (void) { //set the positions of the cubes
+
+    for (int i=0;i<10;i++)
+    {
+    positionz[i] = rand()%5 + 5;
+    positionx[i] = rand()%5 + 5;
+    }
+}
+
+void cube (void) {
+    for (int i=0;i<10;i++)
+    {
+    glPushMatrix();
+    glTranslated(-positionx[i + 1] * 10, 0, -positionz[i + 1] *
+10); //translate the cube
+    glutSolidCube(2); //draw the cube
+    glPopMatrix();
+    }
+}
+
+
+void RenderScene(){
+    auto scene = EditorInstance::GetSingleton()->currentScene;
+    for(auto go : scene->hierarchy){
+        if(auto mr = (go->GetComponent<MeshRenderer>())){
+            mr->Update();
+        }
+        if(auto mr = (go->GetComponent<Camera>())){
+            mr->Update();
+        }
+    }
+    //cube();
+    //glColor3f (1, 0, .5);
+
+    //glTranslatef (0, -100, -700);
+
+//    glBegin (GL_QUADS);
+//        glVertex3f ( 200, 0,  200);
+//        glVertex3f (-200, 0,  200);
+//        glVertex3f (-200, 0, -200);
+//        glVertex3f ( 200, 0, -200);
+//    glEnd ();
+}
+
 
 
 int main()
@@ -121,6 +187,7 @@ int main()
     gl->_UIspecial = editorspecial;
     gl->_UIspecialUp = editorspecialUp;
 //    testRender(gl);
+    render->setOnRender(RenderScene);
     render->setOnGUI(editorDraw);
     render->init(config->window.w, config->window.h);
 
@@ -128,6 +195,20 @@ int main()
     cout << "> Render: " << render << endl;
     InitModules(EditorInstance::GetSingleton());
     CreateDemoObjects();
+    cubepositions();
+
+
+
+    AssImporter::getSingleton()->Import("mpm_vol.09_p35.OBJ");
+    if(ResDB::getSingleton()->meshes.size() > 0)
+        for(auto m : ResDB::getSingleton()->meshes){
+            GameObject* go = new GameObject("Cola");
+            MeshRenderer* mr = new MeshRenderer();
+            mr->mesh = m;
+            go->AddComponent(dynamic_cast<Component*>(mr));
+            cout << go->name << " : " << go->transform.position.toStringA() << endl;
+            EditorInstance::GetSingleton()->currentScene->Add(go);
+        }
 
     for(auto g : EditorInstance::GetSingleton()->currentScene->hierarchy)
         PrintHierarchy(g, 0);

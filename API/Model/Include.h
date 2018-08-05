@@ -61,6 +61,4 @@ Color Vector4::toColor()
 #include "Package.h"
 #include "Module.h"
 
-#include "AppInstance.h"
-
 // --------------Already defined troouble-----------------

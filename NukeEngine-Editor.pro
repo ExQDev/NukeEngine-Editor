@@ -5,7 +5,7 @@ CONFIG -= qt
 
 DEFINES += GLM_ENABLE_EXPERIMENTAL EDITOR
 
-LIBS += -L/usr/local/lib -lglut -lGL -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl
+LIBS += -L/usr/local/lib -lglut -lGL -lGLU -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl -lassimp
 
 INCLUDEPATH += deps/imgui
 
@@ -14,7 +14,9 @@ SOURCES += \
     deps/imgui/imgui.cpp \
     deps/imgui/imgui_demo.cpp \
     deps/imgui/imgui_draw.cpp \
-    API/Model/Vector.cpp
+    API/Model/Vector.cpp \
+    deps/lodepng/lodepng_util.cpp \
+    deps/lodepng/lodepng.cpp
 
 HEADERS += \
     backend/lua.h \
@@ -78,5 +80,8 @@ HEADERS += \
     interface/EditorInstance.h \
     interface/NUKEEInteface.h \
     interface/Modular.h \
-    interface/AppInstance.h
-
+    interface/AppInstance.h \
+    import/assimporter.h \
+    API/Model/resdb.h \
+    deps/lodepng/lodepng_util.h \
+    deps/lodepng/lodepng.h
