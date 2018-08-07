@@ -1,8 +1,6 @@
 #pragma once
 #ifndef NUKEE_COMPONENT_H
 #define NUKEE_COMPONENT_H
-//#include <boolinq\include\boolinq\boolinq.h>
-
 class GameObject;
 class Transform;
 class Script;
@@ -13,7 +11,7 @@ class Light;
 class Component
 {
 public:
-	bool enabled;
+    bool enabled = true;
 	Transform* transform;
 	GameObject* gameobject;
     char* name;

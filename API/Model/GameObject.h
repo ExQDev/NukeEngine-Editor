@@ -12,7 +12,7 @@ class GameObject : public Component
 {
 public:
 	Transform transform = { this };
-	GameObject* parent;
+    GameObject* parent = nullptr;
 	ID id;
 	std::string name = "GameObject";
 	std::string tag = "Untagged";
@@ -51,7 +51,7 @@ public:
 	}
 
     void AddComponent(Component* cmp){
-        components.push_back(cmp);
+        cmp->Init(this);
     }
 
 	void Init(GameObject* parent) 
@@ -92,4 +92,17 @@ public:
 private:
 
 };
+
+Vector3 Transform::globalPosition(){
+//    cout << "GO: " << this->go << endl;
+//    cout << "GO PARENT: " << this->go->parent << endl;
+//    cout << "GO PARENT POS: " << this->go->parent->transform.position.toStringA() << endl;
+    return ((this->go != nullptr && this->go->parent != nullptr)
+            ?(this->position + this->go->parent->transform.globalPosition())
+           :(this->position));
+}
+
+Quaternion Transform::globalRotation(){
+    return (this->go->parent)?(this->rotation + this->go->parent->transform.globalRotation()):(this->rotation);
+}
 #endif // !NUKEE_GAMEOBJECT_H

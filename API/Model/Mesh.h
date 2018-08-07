@@ -1,10 +1,15 @@
 #pragma once
 #ifndef NUKEE_MESH_H
 #define NUKEE_MESH_H
+#include "Transform.h"
+#include "Material.h"
 #include <assimp/mesh.h>
 #include <GL/glut.h>
 #include <GL/gl.h>
 #include <GL/freeglut.h>
+#include <boost/container/list.hpp>
+
+namespace bc = boost::container;
 
 class Mesh 
 {
@@ -14,7 +19,15 @@ class Mesh
 
     int numVerts;
 
+    bc::list<Mesh*> children;
+
 public:
+    const char *name;
+
+    Mesh(){
+        children.clear();
+    }
+
     void ImportAIMesh(aiMesh* mesh){
         numVerts = mesh->mNumFaces*3;
 
@@ -45,9 +58,28 @@ public:
         uvArray-=mesh->mNumFaces*3*2;
         normalArray-=mesh->mNumFaces*3*3;
         vertexArray-=mesh->mNumFaces*3*3;
+        const char* __name = mesh->mName.C_Str();
+        //strcpy(name, __name);
+        name = __name;
     }
 
-    void Render(){
+    void Render(Material *mat, Transform* tr){
+        //cout << "DIFF CNT: " << mat->aiMat->GetTextureCount(aiTextureType_DIFFUSE) << endl;;
+        //aiString texPath;
+        //mat->aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &texPath);
+        //cout << "DIFF P: " << texPath.C_Str() << endl;
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable (GL_LIGHTING);
+        glEnable (GL_LIGHT0);
+
+        Vector3 pos = tr->globalPosition();
+        Vector4 rot = tr->globalRotation();
+
+        glTranslated(pos.x, pos.y, pos.z);
+        glRotated(rot.x, 1.0, 0.0, 0.0);
+        glRotated(rot.y, 0.0, 1.0, 0.0);
+        glRotated(rot.z, 0.0, 0.0, 1.0);
+
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);

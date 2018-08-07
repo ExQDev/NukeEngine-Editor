@@ -1,4 +1,5 @@
 #include <iostream>
+#include <API/Model/Include.h>
 #include <render/opengl/nukeogl.h>
 #include <input/keyboard.h>
 #include <config.h>
@@ -16,6 +17,13 @@ using namespace std;
 
 void keyboard1(unsigned char c, int x, int y)
 {
+//    auto scene = EditorInstance::GetSingleton()->currentScene;
+//    for(auto go : scene->hierarchy){
+//        if(auto mr = (go->GetComponent<MeshRenderer>())){
+//            mr->enabled = !mr->enabled;
+//            cout << go->name << "." << mr->name << ".enabled = " << mr->enabled << endl;
+//        }
+//    }
     //cout << "[1] key pressed! " << c << endl;
 }
 
@@ -72,7 +80,7 @@ std::string MultiString(std::string str, int times){
 }
 
 void PrintHierarchy(GameObject* go, int level){
-    cout << MultiString("\t", level) << go->name << endl;
+    cout << MultiString("\t", level) << go->name << ";; POS: " << go->transform.position.toStringA() << endl;
     if(go->children.size() > 0)
         for(auto child : go->children)
             PrintHierarchy(child, level + 1);
@@ -141,28 +149,24 @@ void cube (void) {
     }
 }
 
+void RenderObject(GameObject* go){
+
+    if(auto mr = go->GetComponent<MeshRenderer>())
+        mr->Update();
+
+    for(auto goc : go->children)
+        RenderObject(goc);
+
+}
 
 void RenderScene(){
     auto scene = EditorInstance::GetSingleton()->currentScene;
     for(auto go : scene->hierarchy){
-        if(auto mr = (go->GetComponent<MeshRenderer>())){
-            mr->Update();
-        }
+        RenderObject(go);
         if(auto mr = (go->GetComponent<Camera>())){
             mr->Update();
         }
     }
-    //cube();
-    //glColor3f (1, 0, .5);
-
-    //glTranslatef (0, -100, -700);
-
-//    glBegin (GL_QUADS);
-//        glVertex3f ( 200, 0,  200);
-//        glVertex3f (-200, 0,  200);
-//        glVertex3f (-200, 0, -200);
-//        glVertex3f ( 200, 0, -200);
-//    glEnd ();
 }
 
 
@@ -203,15 +207,21 @@ int main()
 
 
     AssImporter::getSingleton()->Import("mpm_vol.09_p35.OBJ");
-    if(ResDB::getSingleton()->meshes.size() > 0)
-        for(auto m : ResDB::getSingleton()->meshes){
-            GameObject* go = new GameObject("Cola");
-            MeshRenderer* mr = new MeshRenderer();
-            mr->mesh = m;
-            go->AddComponent(dynamic_cast<Component*>(mr));
-            cout << go->name << " : " << go->transform.position.toStringA() << endl;
-            EditorInstance::GetSingleton()->currentScene->Add(go);
+    if(ResDB::getSingleton()->prefabs.size() > 0)
+    {
+        for(auto pref : ResDB::getSingleton()->prefabs){
+            EditorInstance::GetSingleton()->currentScene->Add(pref);
         }
+//        for(auto m : ResDB::getSingleton()->meshes){
+//            GameObject* go = new GameObject(m->name);
+//            MeshRenderer* mr = new MeshRenderer();
+//            mr->mesh = m;
+//            go->AddComponent(mr);//dynamic_cast<Component*>(mr));
+//            cout << go->name << " : " << go->transform.position.toStringA() << endl;
+//            EditorInstance::GetSingleton()->currentScene->Add(go);
+//        }
+    }
+
 
     for(auto g : EditorInstance::GetSingleton()->currentScene->hierarchy)
         PrintHierarchy(g, 0);

@@ -4,6 +4,7 @@
 #include "Texture.h"
 #include "Material.h"
 #include "Shader.h"
+#include "GameObject.h"
 #include <boost/container/list.hpp>
 
 namespace bc = boost::container;
@@ -17,6 +18,7 @@ public:
     bc::list<Texture*> textures;
     bc::list<Material*> materials;
     bc::list<Shader*> shaders;
+    bc::list<GameObject*> prefabs;
 
     static ResDB* getSingleton(){
         static ResDB instance;

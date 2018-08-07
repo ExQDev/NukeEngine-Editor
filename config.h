@@ -5,7 +5,13 @@
 struct NukeWindow{
     int w, h;
     std::string mainFont;
-    bool hierarchy, console, browser, plugmgr, about, inspector, render;
+    bool hierarchy = true,
+            console = true,
+            browser = true,
+            plugmgr = false,
+            about = true,
+            inspector = true,
+            render = true;
 } NukeWindow;
 
 struct confUiVec{

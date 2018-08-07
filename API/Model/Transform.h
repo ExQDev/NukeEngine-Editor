@@ -10,7 +10,7 @@ public:
 	Vector3 position;
 	Quaternion rotation;
 	Vector3 scale;
-	GameObject *go;
+    GameObject *go = nullptr;
 
 	Transform(GameObject* parent) 
 	{
@@ -48,6 +48,9 @@ public:
                        cos(rotation.x) * sin(rotation.y));
     }
 
+
+    Vector3 globalPosition();
+    Quaternion globalRotation();
 
 	void Destroy() 
 	{

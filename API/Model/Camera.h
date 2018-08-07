@@ -61,13 +61,13 @@ public:
             return;
 
         if(KeyBoard::getSingleton()->getKeyPressed('w'))
-            transform->position +=  transform->direction();
+            transform->position +=  transform->direction() * 3;
         if(KeyBoard::getSingleton()->getKeyPressed('a'))
-            transform->position += transform->right() * -1;
+            transform->position += transform->right() * -3;
         if(KeyBoard::getSingleton()->getKeyPressed('s'))
-            transform->position += transform->direction() * -1;
+            transform->position += transform->direction() * -3;
         if(KeyBoard::getSingleton()->getKeyPressed('d'))
-            transform->position += transform->right();
+            transform->position += transform->right() * 3;
 
         //cout << "CAM MOV [ " << transform->position.toStringA() << " ]" << endl;
     }
@@ -87,6 +87,10 @@ public:
                 crosshair = false;
             }
         }
+    }
+
+    void mouseScroll(int button, int dir, int x, int y){
+        transform->position += transform->direction() * dir * 3;
     }
 
     void ProcessMouseMove(int x, int y){
@@ -149,6 +153,7 @@ public:
         //*KeyBoard::getSingleton() += b::function<void(unsigned char, int, int)>(b::bind(&Camera::ProcessKeyboard, b::ref(*this), _1, _2, _3));
         *Mouse::getSingleton() += b::function<void(int, int, int, int)>(b::bind(&Camera::ProcessMouse, b::ref(*this), _1, _2, _3, _4));
         *Mouse::getSingleton() &= b::function<void(int, int)>(b::bind(&Camera::ProcessMouseMove, b::ref(*this), _1, _2));
+        *Mouse::getSingleton() *= b::function<void(int, int, int, int)>(b::bind(&Camera::mouseScroll, b::ref(*this), _1, _2, _3, _4));
 	}
 	void FixedUpdate() {}
 	void Update() {

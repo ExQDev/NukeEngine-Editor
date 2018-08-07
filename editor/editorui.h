@@ -490,31 +490,37 @@ public:
     void winInspector(){
         ImGui::Begin("Inspector");
         if(auto sltd = EditorInstance::GetSingleton()->selectedInHieararchy){
-            char *__name = new char[64];
+            char *__name = new char[128];
             strcpy(__name, sltd->name.c_str());
-            ImGui::InputText("Name", __name, 64);
+            ImGui::InputText("Name", __name, 128);
             sltd->name = __name;
 
-            char *__tag= new char[64];
+            char *__tag= new char[128];
             strcpy(__tag, sltd->tag.c_str());
-            ImGui::InputText("Tag", __tag, 64);
+            ImGui::InputText("Tag", __tag, 128);
             sltd->tag = __tag;
 
             ImGui::BeginGroup();
             ImGui::Text("Transform");
             ImGui::Text("Position");
+            double posx = sltd->transform.position.x,
+                    posy = sltd->transform.position.y,
+                    posz = sltd->transform.position.z;
             ImGui::Columns(3);
-            ImGui::InputDouble("x",&sltd->transform.position.x); ImGui::NextColumn();
-            ImGui::InputDouble("y",&sltd->transform.position.y); ImGui::NextColumn();
-            ImGui::InputDouble("z",&sltd->transform.position.z);
+            ImGui::InputDouble("xpos",&posx); ImGui::NextColumn();
+            ImGui::InputDouble("ypos",&posy); ImGui::NextColumn();
+            ImGui::InputDouble("zpos",&posz);
+            sltd->transform.position.x = posx;
+            sltd->transform.position.y = posy;
+            sltd->transform.position.z = posz;
             ImGui::EndColumns();
 
             ImGui::Text("Rotation");
             ImGui::Columns(2);
-            ImGui::InputDouble("x",&sltd->transform.rotation.x);
-            ImGui::InputDouble("y",&sltd->transform.rotation.y); ImGui::NextColumn();
-            ImGui::InputDouble("z",&sltd->transform.rotation.z);
-            ImGui::InputDouble("w",&sltd->transform.rotation.w);
+            ImGui::InputDouble("xrot",&sltd->transform.rotation.x);
+            ImGui::InputDouble("yrot",&sltd->transform.rotation.y); ImGui::NextColumn();
+            ImGui::InputDouble("zrot",&sltd->transform.rotation.z);
+            ImGui::InputDouble("wrot",&sltd->transform.rotation.w);
             ImGui::EndColumns();
 
             ImGui::EndGroup();
@@ -522,6 +528,7 @@ public:
             if(ImGui::CollapsingHeader("Components")){
                 for(auto cmp : sltd->components){
                     if(ImGui::CollapsingHeader(cmp->name)){
+                        ImGui::Checkbox("Enabled", &cmp->enabled);
                         if(auto cam = dynamic_cast<Camera*>(cmp)){
                             CamComponent(cam);
                         }
@@ -542,6 +549,12 @@ public:
                                              ImVec2(ImGui::GetItemRectMin().x + 0,
                                             ImGui::GetItemRectMin().y + pos.y),
                                              maxPos, ImVec2(0,1), ImVec2(1,0));
+        ImGui::End();
+    }
+
+    void winAbout(){
+        ImGui::Begin("About");
+        ImGui::TextWrapped("NukeEngine - free open source game engine, developed by ExQDev team and people:). It was made to help developerss make their games as they like, easy and fast. NukeEngine is modular, and allows you to extend it. It allows your games to be modded too. And looks like Unity and has coder-friendly API:) \nEnjoy!");
         ImGui::End();
     }
 
@@ -618,6 +631,8 @@ public:
 //        cout << "Draw" << endl;
         mainMenu();
 
+        if(win->about)
+            winAbout();
         if(win->hierarchy)
             winHierarchy();
         if(win->browser)

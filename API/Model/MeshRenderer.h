@@ -6,11 +6,13 @@
 class MeshRenderer : public Component 
 {
 public:
-	Mesh * mesh;
+    Mesh        *mesh;
+    Material    *mat;
 
     MeshRenderer() : Component("MeshRenderer"){}
 
     void Init(GameObject* parent){
+        transform = &parent->transform;
         parent->components.push_back(this);
     }
 
@@ -20,7 +22,7 @@ public:
 
     void Update(){
         if(enabled)
-            mesh->Render();
+            mesh->Render(mat, transform);
     }
 
     void FixedUpdate() {}
