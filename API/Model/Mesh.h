@@ -76,11 +76,11 @@ public:
         Vector3 rot = tr->globalRotation();
         Vector3 scale = tr->globalScale();
 
-        glTranslated(pos.x, pos.y, pos.z);
+        glScaled(scale.x, scale.y, scale.z);
         glRotatef(rot.x, 1.0, 0.0, 0.0);
         glRotatef(rot.y, 0.0, 1.0, 0.0);
         glRotatef(rot.z, 0.0, 0.0, 1.0);
-        glScaled(scale.x, scale.y, scale.z);
+        glTranslated(pos.x, pos.y, pos.z);
 
 
         glEnableClientState(GL_VERTEX_ARRAY);
@@ -99,9 +99,9 @@ public:
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
         glTranslated(-pos.x, -pos.y, -pos.z);
-        glRotated(-rot.x, 1.0, 0.0, 0.0);
-        glRotated(-rot.y, 0.0, 1.0, 0.0);
         glRotated(-rot.z, 0.0, 0.0, 1.0);
+        glRotated(-rot.y, 0.0, 1.0, 0.0);
+        glRotated(-rot.x, 1.0, 0.0, 0.0);
         glScaled(1/scale.x, 1/scale.y, 1/scale.z);
 
     }
