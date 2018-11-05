@@ -64,24 +64,28 @@ public:
         return keyStates[c];
     }
 
+    // On Key
     KeyBoard* operator+=(b::function<void(unsigned char c, int x, int y)> onKey)
     {
         _onKey.push_back(onKey);
         return this;
     }
 
+    // On Special Key
     KeyBoard* operator*=(b::function<void(int key, int x, int y)> onSpecialKey)
     {
         _onSpecialKey.push_back(onSpecialKey);
         return this;
     }
 
+    // On Key Up
     KeyBoard* operator&=(b::function<void(unsigned char c, int x, int y)> onKeyUp)
     {
         _onKeyUp.push_back(onKeyUp);
         return this;
     }
 
+    // On Special Key Up
     KeyBoard* operator|=(b::function<void(int key, int x, int y)> onSpecialKeyUp)
     {
         _onSpecialKeyUp.push_back(onSpecialKeyUp);

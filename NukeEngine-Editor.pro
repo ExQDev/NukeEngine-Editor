@@ -3,6 +3,9 @@ CONFIG += console c++14
 CONFIG -= app_bundle
 CONFIG -= qt
 
+ICON += res/logo.ico
+win32:RC_ICONS += res/logo.ico
+
 DEFINES += GLM_ENABLE_EXPERIMENTAL EDITOR
 
 LIBS += -L/usr/local/lib -lglut -lGL -lGLU -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl -lassimp
@@ -16,7 +19,9 @@ SOURCES += \
     deps/imgui/imgui_draw.cpp \
     API/Model/Vector.cpp \
     deps/lodepng/lodepng_util.cpp \
-    deps/lodepng/lodepng.cpp
+    deps/lodepng/lodepng.cpp \
+    deps/ImGuizmo/ImGuizmo.cpp \
+    deps/ImGuizmo/ImSequencer.cpp
 
 HEADERS += \
     backend/lua.h \
@@ -84,4 +89,12 @@ HEADERS += \
     import/assimporter.h \
     API/Model/resdb.h \
     deps/lodepng/lodepng_util.h \
-    deps/lodepng/lodepng.h
+    deps/lodepng/lodepng.h \
+    deps/ImGuizmo/ImGuizmo.h \
+    deps/ImGuizmo/ImSequencer.h \
+    API/Model/ray.h
+
+DISTFILES += \
+    deps/im3d/README.md \
+    deps/im3d/LICENSE \
+    res/logo.ico

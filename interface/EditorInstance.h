@@ -16,6 +16,7 @@ public:
     bool isEditor(){ return true; }
 	MenuStrip* menuStrip;
 	GameObject* selectedInHieararchy;
+    int manipulationMode = 0;
 	
 	static EditorInstance* GetSingleton() 
 	{

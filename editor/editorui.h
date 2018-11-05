@@ -2,13 +2,13 @@
 #define EDITORUI_H
 #include <deps/imgui/imgui.h>
 #include <deps/imgui/imgui_internal.h>
+#include <deps/ImGuizmo/ImGuizmo.h>
 #include <GL/freeglut.h>
 #include <gui/gui.h>
 #include <config.h>
 #include <interface/EditorInstance.h>
 #include <interface/Modular.h>
 #include <boost/container/list.hpp>
-
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
@@ -137,7 +137,8 @@ private:
     boost::shared_ptr<NUKEModule> selectedPlugin = nullptr;
     int selectedPluginIndex = -1;
     int selectedGameObjectIndex = -1;
-
+    bool freezeWindows = true;
+    ImGuiWindowFlags window_flags = 0;
 public:
     static EditorUI* getSingleton(){
         static EditorUI instance;
@@ -181,6 +182,10 @@ public:
         io.Fonts->AddFontFromFileTTF(Config::getSingleton()->window.mainFont.c_str(), 19.f);
         win = &Config::getSingleton()->window;
         InitMenu();
+        *KeyBoard::getSingleton() &= b::function<void(unsigned char, int, int)>(b::bind(&EditorUI::OnKeyBoardUp, this, _1, _2, _3));
+
+//        EditorInstance::GetSingleton()->render->setOnGUI(b::bind(&EditorUI::transformSelected, this));
+
         cout << "EditorUI Initialization finished" << endl;
     }
 
@@ -416,6 +421,7 @@ public:
     {
         if(ImGui::MenuItem("Fullscreen", "F11"))
             glutFullScreenToggle();
+        ImGui::MenuItem("Freeze windows", "F8", &freezeWindows);
 
         ImGui::Separator();
         ImGui::MenuItem("Hierarchy", "Ctrl+Alt+H", &win->hierarchy);
@@ -480,15 +486,135 @@ public:
         ImGui::Checkbox("Free mode", &cam->freeMode);
     }
 
+    void OnKeyBoardUp(unsigned char c, int x, int y){
+        switch(c){
+            case 'f' | 'F':
+            if(auto selected = EditorInstance::GetSingleton()->selectedInHieararchy){
+                auto cam = EditorInstance::GetSingleton()->currentScene->Get("Editor Camera");
+                if(cam && (&cam->transform != &selected->transform)){
+                    Vector3 distance = (cam->transform.globalPosition() - selected->transform.globalPosition());
+                    cout << "DIST: " << distance.toStringA() << endl;
+                    double length = 100;
+                    cout << "LEN: " << length << endl;
+                    cam->transform.position = selected->transform.position + (distance.normalize()) * (length);
+                    // TODO: fix look at!
+                    cam->transform.rotation = Vector3(cam->transform.rotation.x - distance.normalize().x, cam->transform.rotation.y - distance.normalize().y, cam->transform.rotation.y);
+                }
+            }
+            break;
+        }
+    }
+
+    void transformSelected(ImVec2 minPos, ImVec2 maxPos){
+        if(auto tg = EditorInstance::GetSingleton()->selectedInHieararchy)
+            EditTransform(&tg->transform, minPos, maxPos);
+    }
+
+    void EditTransform(Transform* t, ImVec2 minPos, ImVec2 maxPos)
+    {
+        //static mat4 transform;
+        //cout << "EDIT TRANSFORM" << endl;
+        auto cam = EditorInstance::GetSingleton()->currentScene->Get("Editor Camera");
+        auto camCmp = cam->GetComponent<Camera>();
+
+        ImGuizmo::SetOrthographic(false);
+        ImGuizmo::SetDrawlist();
+        ImGuizmo::Enable(true);
+
+
+        ImGuiIO& io = ImGui::GetIO();
+//        cout << "IO SIZE: " << io.DisplaySize.x << ", " << io.DisplaySize.y << endl;
+        ImGuizmo::SetRect(minPos.x, minPos.y, maxPos.x, maxPos.y);
+
+        float* _view = new float[16];
+        glm::mat4 mmat = glm::mat4();
+        glm::translate(mmat, glm::vec3
+                        {
+                           t->globalPosition().x,
+                           t->globalPosition().y,
+                           t->globalPosition().z
+                       });
+        glm::scale(mmat, glm::vec3{t->globalScale().x, t->globalScale().y, t->globalScale().z});
+        glm::rotate(mmat, (float)t->globalRotation().x , glm::vec3{1, 0, 0});
+        glm::rotate(mmat, (float)t->globalRotation().y , glm::vec3{0, 1, 0});
+        glm::rotate(mmat, (float)t->globalRotation().z , glm::vec3{0, 0, 1});
+        _view =(float*)glm::value_ptr(mmat);
+//        glGetFloatv(GL_MODELVIEW_MATRIX, _view);
+        glm::fmat4 view = glm::mat4(*_view);
+
+        float* _proj = new float[16];
+        glm::mat4 pmat = glm::perspectiveFov(camCmp->fov, io.DisplaySize.x, io.DisplaySize.y, camCmp->_near, camCmp->_far);
+        _proj = (float*)glm::value_ptr(pmat);
+//        glGetFloatv(GL_PROJECTION_MATRIX, _proj);
+        glm::fmat4 projection = pmat; //glm::mat4(*_proj);
+
+
+        auto matrix = //glm::mat4();
+        glm::lookAt(
+            glm::vec3 { cam->transform.globalPosition().x, cam->transform.globalPosition().y, cam->transform.globalPosition().z },
+            //{ t->globalPosition().x, t->globalPosition().y, t->globalPosition().z },
+            { cam->transform.globalPosition().x + cam->transform.direction().x, cam->transform.globalPosition().y + cam->transform.direction().y, cam->transform.globalPosition().z + cam->transform.direction().z },
+            { 0, 1, 0});
+
+//        glutSolidSphere(1.0, 50, 50);
+//ssssss
+
+
+        float globalDelta[] = {
+            (float)t->globalPosition().x - (float)t->position.x,
+            (float)t->globalPosition().y - (float)t->position.y,
+            (float)t->globalPosition().z - (float)t->position.z
+        };
+        float globalDeltaRot[] = {
+            (float)t->globalRotation().x - (float)t->rotation.x,
+            (float)t->globalRotation().y - (float)t->rotation.y,
+            (float)t->globalRotation().z - (float)t->rotation.z
+        };
+        float globalDeltaScale[] = {
+            (float)t->globalScale().x / (float)t->scale.x,
+            (float)t->globalScale().y / (float)t->scale.y,
+            (float)t->globalScale().z / (float)t->scale.z
+        };
+        float translation[] = { (float)t->globalPosition().x, (float)t->globalPosition().y, (float)t->globalPosition().z };
+        float rotation[] = { (float)t->rotation.x, (float)t->rotation.y, (float)t->rotation.z }; //{ (float)t->globalRotation().x, (float)t->globalRotation().y, (float)t->globalRotation().z };
+        float scale[] = { (float)t->scale.x, (float)t->scale.y, (float)t->scale.z };//{ (float)t->globalScale().x, (float)t->globalScale().y, (float)t->globalScale().z };
+
+        ImGuizmo::RecomposeMatrixFromComponents(&translation[0], &rotation[0], &scale[0], &view[0][0]);
+//        ImGuizmo::DrawCube(&matrix[0][0], &projection[0][0], &view[0][0]);
+//        ImGuizmo::DrawGrid(&matrix[0][0], &projection[0][0], &view[0][0], 200.0f);
+        //ImGuizmo::Manipulate(&view[0][0], &projection[0][0], ImGuizmo::ROTATE, ImGuizmo::WORLD, &matrix[0][0]);
+        ImGuizmo::Manipulate(&matrix[0][0], &projection[0][0], (ImGuizmo::OPERATION)EditorInstance::GetSingleton()->manipulationMode, ImGuizmo::WORLD, &view[0][0], NULL, NULL);
+        ImGuizmo::DecomposeMatrixToComponents(&view[0][0], &translation[0], &rotation[0], &scale[0]);
+        t->position.x = translation[0] - globalDelta[0];
+        t->position.y = translation[1] - globalDelta[1];
+        t->position.z = translation[2] - globalDelta[2];
+        t->rotation.x = rotation[0] - globalDeltaRot[0];
+        t->rotation.y = rotation[1] - globalDeltaRot[1];
+        t->rotation.z = rotation[2] - globalDeltaRot[2];
+        t->scale.x = scale[0];// / globalDeltaScale[0];
+        t->scale.y = scale[1];// / globalDeltaScale[1];
+        t->scale.z = scale[2];// / globalDeltaScale[2];
+
+    }
+
     void winHierarchy(){
-        ImGui::Begin("Hierarchy");
+        ImGui::Begin("Hierarchy", &win->hierarchy, window_flags);
         //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&EditorInstance::GetSingleton()->currentScene->hierarchy), EditorInstance::GetSingleton()->currentScene->hierarchy.size());
         DisplayRecursiveGameObjectHierarchy(EditorInstance::GetSingleton()->currentScene->hierarchy);
         ImGui::End();
     }
 
     void winInspector(){
-        ImGui::Begin("Inspector");
+        ImGui::Begin("Inspector", &win->inspector, window_flags);
+        ImGui::Text("Manipulation mode:");
+        if (ImGui::RadioButton("Translate", EditorInstance::GetSingleton()->manipulationMode == ImGuizmo::TRANSLATE))
+            EditorInstance::GetSingleton()->manipulationMode = ImGuizmo::TRANSLATE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Rotate", EditorInstance::GetSingleton()->manipulationMode == ImGuizmo::ROTATE))
+            EditorInstance::GetSingleton()->manipulationMode = ImGuizmo::ROTATE;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Scale", EditorInstance::GetSingleton()->manipulationMode == ImGuizmo::SCALE))
+            EditorInstance::GetSingleton()->manipulationMode = ImGuizmo::SCALE;
         if(auto sltd = EditorInstance::GetSingleton()->selectedInHieararchy){
             char *__name = new char[128];
             strcpy(__name, sltd->name.c_str());
@@ -507,20 +633,35 @@ public:
                     posy = sltd->transform.position.y,
                     posz = sltd->transform.position.z;
             ImGui::Columns(3);
-            ImGui::InputDouble("xpos",&posx); ImGui::NextColumn();
-            ImGui::InputDouble("ypos",&posy); ImGui::NextColumn();
-            ImGui::InputDouble("zpos",&posz);
+            ImGui::InputDouble("xp",&posx); ImGui::NextColumn();
+            ImGui::InputDouble("yp",&posy); ImGui::NextColumn();
+            ImGui::InputDouble("zp",&posz);
             sltd->transform.position.x = posx;
             sltd->transform.position.y = posy;
             sltd->transform.position.z = posz;
             ImGui::EndColumns();
 
+            ImGui::Text("Scale");
+            double scx = sltd->transform.scale.x,
+                    scy = sltd->transform.scale.y,
+                    scz = sltd->transform.scale.z;
+            ImGui::Columns(3);
+            ImGui::InputDouble("xs",&scx); ImGui::NextColumn();
+            ImGui::InputDouble("ys",&scy); ImGui::NextColumn();
+            ImGui::InputDouble("zs",&scz);
+            sltd->transform.scale.x = scx;
+            sltd->transform.scale.y = scy;
+            sltd->transform.scale.z = scz;
+            ImGui::EndColumns();
+
             ImGui::Text("Rotation");
-            ImGui::Columns(2);
-            ImGui::InputDouble("xrot",&sltd->transform.rotation.x);
-            ImGui::InputDouble("yrot",&sltd->transform.rotation.y); ImGui::NextColumn();
-            ImGui::InputDouble("zrot",&sltd->transform.rotation.z);
-            ImGui::InputDouble("wrot",&sltd->transform.rotation.w);
+            ImGui::Columns(3);
+            ImGui::InputDouble("xr",&sltd->transform.rotation.x);
+            ImGui::NextColumn();
+            ImGui::InputDouble("yr",&sltd->transform.rotation.y);
+            ImGui::NextColumn();
+            ImGui::InputDouble("zr",&sltd->transform.rotation.z);
+            //ImGui::InputDouble("wr",&sltd->transform.rotation.w);
             ImGui::EndColumns();
 
             ImGui::EndGroup();
@@ -541,39 +682,45 @@ public:
     }
 
     void winRender(){
-        ImGui::Begin("Render");
+        ImGui::Begin("Render", &win->render, window_flags);
         ImVec2 pos = ImGui::GetWindowPos();
         auto tex = dynamic_cast<NukeOGL*>(EditorInstance::GetSingleton()->render)->getRenderTexture();
-        ImVec2 maxPos = ImVec2(pos.x + ImGui::GetWindowSize().x, pos.y + ImGui::GetWindowSize().y);
+        ImVec2 maxPos = ImVec2(pos.x + ImGui::GetWindowSize().x, pos.y + ImGui::GetWindowSize().y + 2);
         ImGui::GetWindowDrawList()->AddImage((void *)tex,
                                              ImVec2(ImGui::GetItemRectMin().x + 0,
-                                            ImGui::GetItemRectMin().y + pos.y),
+                                            ImGui::GetItemRectMin().y - 2),
                                              maxPos, ImVec2(0,1), ImVec2(1,0));
+//        if(EditorInstance::GetSingleton()->selectedInHieararchy){
+//            EditTransform(&EditorInstance::GetSingleton()->selectedInHieararchy->transform);
+//        }
+
+        transformSelected(pos, maxPos);
         ImGui::End();
     }
 
     void winAbout(){
-        ImGui::Begin("About");
+        ImGui::Begin("About", &win->render, window_flags);
         ImGui::TextWrapped("NukeEngine - free open source game engine, developed by ExQDev team and people:). It was made to help developerss make their games as they like, easy and fast. NukeEngine is modular, and allows you to extend it. It allows your games to be modded too. And looks like Unity and has coder-friendly API:) \nEnjoy!");
         ImGui::End();
     }
 
     void winConsole(){
-        ImGui::Begin("Console");
+        ImGui::Begin("Console", &win->console, window_flags);
 
         ImGui::End();
     }
 
     void winBrowser(){
-        ImGui::Begin("Browser");
+        ImGui::Begin("Browser", &win->browser, window_flags);
 
         ImGui::End();
     }
 
     void PluginMGRWindow()
     {
-        if (ImGui::Begin("Plugins"))
+        if (ImGui::Begin("Plugins", &win->plugmgr))
         {
+            ImGui::TextWrapped("To install plugin put it at `modules` directory.");
             ImGui::Columns(2);
             ImGui::ListBox("", &selectedPluginIndex, PlugTitleGetter, static_cast<void*>(&modules), modules.size());
             if(selectedPluginIndex >= 0)
@@ -627,6 +774,11 @@ public:
 
     void Draw(){
         preDraw();
+
+        if(freezeWindows)
+            window_flags |= ImGuiWindowFlags_NoMove;
+        else
+            window_flags &= false;
 
 //        cout << "Draw" << endl;
         mainMenu();

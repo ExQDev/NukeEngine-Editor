@@ -33,8 +33,8 @@ class NukeOGL : public iRender
 private:
     bc::list<b::function<void()>> _onClose;
     b::function<void()> _physTrigger;
-    b::function<void(void)> _onRender;
-    b::function<void(void)> _onGUI;
+    bc::list<b::function<void(void)>> _onRender;
+    bc::list<b::function<void(void)>> _onGUI;
 
     static NukeOGL* _main;
 
@@ -81,12 +81,12 @@ public:
     }
 
     void setOnGUI(b::function<void(void)> cb){
-        _onGUI = cb;
+        _onGUI.push_back(cb);
 //        cout << cb << " -- onGUI[" << this << "]" << endl;
     }
 
     void setOnRender(b::function<void(void)> cb){
-        _onRender = cb;
+        _onRender.push_back(cb);
 //        cout << cb << " -- onRender" << endl;
     }
 
@@ -257,6 +257,8 @@ public:
         glutInitWindowPosition(90, 90);
         glutInitWindowSize(w, h);
         glutCreateWindow("NukeEngine Editor");
+        glutSetIconTitle("logo.ico");
+        cout << get_current_dir_name() << endl;
         glutKeyboardFunc(oglkeyboard);
         glutSpecialFunc(oglspecialkeyboard);
         glutKeyboardUpFunc(oglkeyboardup);
@@ -363,8 +365,10 @@ public:
                           1.0,
                           0.0);
 
-        if(_onRender)
-            _onRender();
+        if(_onRender.size() > 0)
+            for(auto _rn : _onRender){
+                _rn();
+            }
 
 #ifdef EDITOR
         glPopAttrib(); // Restore our glEnable and glViewport states
@@ -377,8 +381,10 @@ public:
 #endif
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if(_onGUI)
-            _onGUI();
+        if(_onGUI.size() > 0)
+            for(auto _rn : _onGUI){
+                _rn();
+            }
 
         glutSwapBuffers();
         //glutPostRedisplay();

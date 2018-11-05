@@ -73,12 +73,15 @@ public:
         glEnable (GL_LIGHT0);
 
         Vector3 pos = tr->globalPosition();
-        Vector4 rot = tr->globalRotation();
+        Vector3 rot = tr->globalRotation();
+        Vector3 scale = tr->globalScale();
 
         glTranslated(pos.x, pos.y, pos.z);
-        glRotated(rot.x, 1.0, 0.0, 0.0);
-        glRotated(rot.y, 0.0, 1.0, 0.0);
-        glRotated(rot.z, 0.0, 0.0, 1.0);
+        glRotatef(rot.x, 1.0, 0.0, 0.0);
+        glRotatef(rot.y, 0.0, 1.0, 0.0);
+        glRotatef(rot.z, 0.0, 0.0, 1.0);
+        glScaled(scale.x, scale.y, scale.z);
+
 
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_NORMAL_ARRAY);
@@ -94,6 +97,13 @@ public:
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_NORMAL_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glTranslated(-pos.x, -pos.y, -pos.z);
+        glRotated(-rot.x, 1.0, 0.0, 0.0);
+        glRotated(-rot.y, 0.0, 1.0, 0.0);
+        glRotated(-rot.z, 0.0, 0.0, 1.0);
+        glScaled(1/scale.x, 1/scale.y, 1/scale.z);
+
     }
 };
 #endif // !NUKEE_MESH_H

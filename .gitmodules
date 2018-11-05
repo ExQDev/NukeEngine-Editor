@@ -10,3 +10,12 @@
 [submodule "deps/lodepng"]
 	path = deps/lodepng
 	url = https://github.com/lvandeve/lodepng.git
+[submodule "deps/ImGuizmo"]
+	path = deps/ImGuizmo
+	url = https://github.com/CedricGuillemet/ImGuizmo.git
+[submodule "deps/im3d"]
+	path = deps/im3d
+	url = https://github.com/john-chapman/im3d.git
+[submodule "deps/ofxManipulator"]
+	path = deps/ofxManipulator
+	url = https://github.com/jing-engine/ofxManipulator.git

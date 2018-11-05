@@ -8,8 +8,8 @@ class Transform : public Component
 {
 public:
 	Vector3 position;
-	Quaternion rotation;
-	Vector3 scale;
+    Vector3 rotation;
+    Vector3 scale = {1,1,1};
     GameObject *go = nullptr;
 
 	Transform(GameObject* parent) 
@@ -24,7 +24,7 @@ public:
 
 	Vector3 forward() 
 	{
-        direction();
+        return direction();
     }
 
     Vector3 right()
@@ -50,7 +50,8 @@ public:
 
 
     Vector3 globalPosition();
-    Quaternion globalRotation();
+    Vector3 globalRotation();
+    Vector3 globalScale();
 
 	void Destroy() 
 	{
@@ -75,7 +76,7 @@ public:
 	void Reset() 
 	{
 		position = Vector3::zero;
-		rotation = { 0,0,0,0 };
+        rotation = { 0,0,0 };
 		scale = Vector3::one;
 	}
 };

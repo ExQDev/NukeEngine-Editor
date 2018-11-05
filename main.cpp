@@ -80,7 +80,7 @@ std::string MultiString(std::string str, int times){
 }
 
 void PrintHierarchy(GameObject* go, int level){
-    cout << MultiString("\t", level) << go->name << ";; POS: " << go->transform.position.toStringA() << endl;
+    cout << MultiString("\t", level) << go->name << "\t(parentgpos: " << (go->parent ? go->parent->transform.globalPosition().toStringA() : "null") << ")" << ";; POS: " << go->transform.globalPosition().toStringA() << endl;
     if(go->children.size() > 0)
         for(auto child : go->children)
             PrintHierarchy(child, level + 1);
@@ -151,11 +151,11 @@ void cube (void) {
 
 void RenderObject(GameObject* go){
 
-    if(auto mr = go->GetComponent<MeshRenderer>())
-        mr->Update();
+//    if(auto mr = go->GetComponent<MeshRenderer>())
+//        mr->Update();
 
     for(auto goc : go->children)
-        RenderObject(goc);
+        goc->Update<MeshRenderer>();//RenderObject(goc);
 
 }
 

@@ -77,6 +77,14 @@ public:
         newChild->parent = this;
     }
 
+    template <class T>
+    void Update(){
+        for(auto c : children){
+            if(auto mr = c->GetComponent<T>())
+                mr->Update();
+        }
+    }
+
 	void Reset() {}
 	void Pause() {}
 	void Destroy() 
@@ -97,12 +105,16 @@ Vector3 Transform::globalPosition(){
 //    cout << "GO: " << this->go << endl;
 //    cout << "GO PARENT: " << this->go->parent << endl;
 //    cout << "GO PARENT POS: " << this->go->parent->transform.position.toStringA() << endl;
-    return ((this->go != nullptr && this->go->parent != nullptr)
+    return Vector3((this->go != nullptr && this->go->parent != nullptr)
             ?(this->position + this->go->parent->transform.globalPosition())
            :(this->position));
 }
 
-Quaternion Transform::globalRotation(){
-    return (this->go->parent)?(this->rotation + this->go->parent->transform.globalRotation()):(this->rotation);
+Vector3 Transform::globalRotation(){
+    return Vector3((this->go->parent)?(this->rotation + this->go->parent->transform.globalRotation()):(this->rotation));
+}
+
+Vector3 Transform::globalScale(){
+    return Vector3((this->go->parent)?(this->scale * this->go->parent->transform.globalScale()):(this->scale));
 }
 #endif // !NUKEE_GAMEOBJECT_H
