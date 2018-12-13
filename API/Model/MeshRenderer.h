@@ -6,7 +6,6 @@
 
 class MeshRenderer : public Component 
 {
-    b::function<void(Mesh*, Material*, Transform*)> renderCallback;
 
 public:
     Mesh        *mesh;
@@ -19,10 +18,6 @@ public:
         parent->components.push_back(this);
     }
 
-    void SetRenderCalback(b::function<void(Mesh*, Material*, Transform*)> renderCallback){
-        this->renderCallback = renderCallback;
-    }
-
     void Destroy(){
 
     }
@@ -30,7 +25,6 @@ public:
     void Update(){
         if(enabled)
             iRender::getSingleton()->renderObject(mesh, mat, transform);
-           //renderCallback(mesh, mat, transform);
     }
 
     void FixedUpdate() {}
