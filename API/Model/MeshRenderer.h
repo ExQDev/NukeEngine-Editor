@@ -2,9 +2,12 @@
 #ifndef NUKEE_MESHRENDERER_H
 #define NUKEE_MESHRENDERER_H
 #include "Include.h"
+#include <render/irender.h>
 
 class MeshRenderer : public Component 
 {
+    b::function<void(Mesh*, Material*, Transform*)> renderCallback;
+
 public:
     Mesh        *mesh;
     Material    *mat;
@@ -16,13 +19,18 @@ public:
         parent->components.push_back(this);
     }
 
+    void SetRenderCalback(b::function<void(Mesh*, Material*, Transform*)> renderCallback){
+        this->renderCallback = renderCallback;
+    }
+
     void Destroy(){
 
     }
 
     void Update(){
         if(enabled)
-            mesh->Render(mat, transform);
+            iRender::getSingleton()->renderObject(mesh, mat, transform);
+           //renderCallback(mesh, mat, transform);
     }
 
     void FixedUpdate() {}

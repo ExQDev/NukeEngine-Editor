@@ -150,13 +150,12 @@ void cube (void) {
 }
 
 void RenderObject(GameObject* go){
-
-//    if(auto mr = go->GetComponent<MeshRenderer>())
-//        mr->Update();
-
     for(auto goc : go->children)
+    {
+        //b::function<void(Mesh* mesh, Material* mat, Transform* transform)> cb = b::bind(b::mem_fn(&iRender::renderObject), iRender::getSingleton(), _1, _2, _3);
+        //goc->GetComponent<MeshRenderer>()->SetRenderCalback(cb);
         goc->Update<MeshRenderer>();//RenderObject(goc);
-
+    }
 }
 
 void RenderScene(){

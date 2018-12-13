@@ -17,6 +17,7 @@ public:
 	MenuStrip* menuStrip;
 	GameObject* selectedInHieararchy;
     int manipulationMode = 0;
+    int manipulationWorld = 0;
 	
 	static EditorInstance* GetSingleton() 
 	{

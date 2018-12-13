@@ -528,16 +528,16 @@ public:
 
         float* _view = new float[16];
         glm::mat4 mmat = glm::mat4();
+        glm::scale(mmat, glm::vec3{t->globalScale().x, t->globalScale().y, t->globalScale().z});
+        glm::rotate(mmat, (float)t->globalRotation().x , glm::vec3{1, 0, 0});
+        glm::rotate(mmat, (float)t->globalRotation().y , glm::vec3{0, 1, 0});
+        glm::rotate(mmat, (float)t->globalRotation().z , glm::vec3{0, 0, 1});
         glm::translate(mmat, glm::vec3
                         {
                            t->globalPosition().x,
                            t->globalPosition().y,
                            t->globalPosition().z
                        });
-        glm::scale(mmat, glm::vec3{t->globalScale().x, t->globalScale().y, t->globalScale().z});
-        glm::rotate(mmat, (float)t->globalRotation().x , glm::vec3{1, 0, 0});
-        glm::rotate(mmat, (float)t->globalRotation().y , glm::vec3{0, 1, 0});
-        glm::rotate(mmat, (float)t->globalRotation().z , glm::vec3{0, 0, 1});
         _view =(float*)glm::value_ptr(mmat);
 //        glGetFloatv(GL_MODELVIEW_MATRIX, _view);
         glm::fmat4 view = glm::mat4(*_view);
@@ -583,7 +583,14 @@ public:
 //        ImGuizmo::DrawCube(&matrix[0][0], &projection[0][0], &view[0][0]);
 //        ImGuizmo::DrawGrid(&matrix[0][0], &projection[0][0], &view[0][0], 200.0f);
         //ImGuizmo::Manipulate(&view[0][0], &projection[0][0], ImGuizmo::ROTATE, ImGuizmo::WORLD, &matrix[0][0]);
-        ImGuizmo::Manipulate(&matrix[0][0], &projection[0][0], (ImGuizmo::OPERATION)EditorInstance::GetSingleton()->manipulationMode, ImGuizmo::WORLD, &view[0][0], NULL, NULL);
+        ImGuizmo::Manipulate(
+                    &matrix[0][0],
+                &projection[0][0],
+                (ImGuizmo::OPERATION)EditorInstance::GetSingleton()->manipulationMode,
+                (ImGuizmo::MODE)EditorInstance::GetSingleton()->manipulationWorld,
+                &view[0][0],
+                NULL,
+                NULL);
         ImGuizmo::DecomposeMatrixToComponents(&view[0][0], &translation[0], &rotation[0], &scale[0]);
         t->position.x = translation[0] - globalDelta[0];
         t->position.y = translation[1] - globalDelta[1];
@@ -606,6 +613,13 @@ public:
 
     void winInspector(){
         ImGui::Begin("Inspector", &win->inspector, window_flags);
+        ImGui::Text("Manipulation space:");
+        if (ImGui::RadioButton("Local", EditorInstance::GetSingleton()->manipulationWorld == ImGuizmo::LOCAL))
+            EditorInstance::GetSingleton()->manipulationWorld = ImGuizmo::LOCAL;
+        ImGui::SameLine();
+        if (ImGui::RadioButton("World", EditorInstance::GetSingleton()->manipulationWorld == ImGuizmo::WORLD))
+            EditorInstance::GetSingleton()->manipulationWorld = ImGuizmo::WORLD;
+
         ImGui::Text("Manipulation mode:");
         if (ImGui::RadioButton("Translate", EditorInstance::GetSingleton()->manipulationMode == ImGuizmo::TRANSLATE))
             EditorInstance::GetSingleton()->manipulationMode = ImGuizmo::TRANSLATE;

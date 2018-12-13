@@ -3,8 +3,8 @@
 #include <boost/container/list.hpp>
 #include <boost/function.hpp>
 
-using namespace boost::container;
 namespace b = boost;
+namespace bc = b::container;
 
 class KeyBoard
 {
@@ -13,10 +13,10 @@ private:
     KeyBoard() {}
     ~KeyBoard(){}
 
-    list<b::function<void(unsigned char c, int x, int y)>> _onKey;
-    list<b::function<void(int key, int x, int y)>> _onSpecialKey;
-    list<b::function<void(unsigned char c, int x, int y)>> _onKeyUp;
-    list<b::function<void(int key, int x, int y)>> _onSpecialKeyUp;
+    bc::list<b::function<void(unsigned char c, int x, int y)>> _onKey;
+    bc::list<b::function<void(int key, int x, int y)>> _onSpecialKey;
+    bc::list<b::function<void(unsigned char c, int x, int y)>> _onKeyUp;
+    bc::list<b::function<void(int key, int x, int y)>> _onSpecialKeyUp;
     bool* keyStates = new bool[256];
 
     void key(unsigned char c, int x, int y)

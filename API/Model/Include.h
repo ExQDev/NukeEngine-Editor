@@ -1,7 +1,6 @@
 #pragma once
 #include <cmath>
 #include <boost/container/list.hpp>
-#include <render/opengl/nukeogl.h>
 
 #ifdef WIN32
 #include <Windows.h>

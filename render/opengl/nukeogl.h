@@ -333,6 +333,51 @@ public:
         glEnable(GL_LIGHTING);
     }
 
+    void renderObject(Mesh* mesh, Material* mat, Transform* transform){
+        glEnable(GL_COLOR_MATERIAL);
+        glEnable (GL_LIGHTING);
+        glEnable (GL_LIGHT0);
+
+        Vector3 pos = transform->globalPosition();
+        Vector3 rot = transform->globalRotation();
+        Vector3 scale = (transform->globalScale());
+        auto globalScale = glm::vec3(scale.x, scale.y, scale.z);
+//        globalScale = glm::rotate(globalScale, (float)tr->rotation.x, {1,0,0});
+//        globalScale = glm::rotate(globalScale, (float)tr->rotation.y, {0,1,0});
+//        globalScale = glm::rotate(globalScale, (float)tr->rotation.z, {0,0,1});
+
+//        cout << tr->direction().toStringA() << endl;
+//        cout << globalScale.x << ", " << globalScale.y << ", " << globalScale.z << endl;
+//        cout << scale.x * tr->forward().x << " :: "<< scale.y * tr->forward().y << " :: " << scale.z * tr->forward().z << endl;
+        glScaled(globalScale.x, globalScale.y, globalScale.z);
+        glRotatef(rot.x, 1.0, 0.0, 0.0);
+        glRotatef(rot.y, 0.0, 1.0, 0.0);
+        glRotatef(rot.z, 0.0, 0.0, 1.0);
+        glTranslated(pos.x, pos.y, pos.z);
+
+
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glVertexPointer(3,GL_FLOAT,0, mesh->vertexArray);
+        glNormalPointer(GL_FLOAT,0,mesh->normalArray);
+
+        glClientActiveTexture(GL_TEXTURE0_ARB);
+        glTexCoordPointer(2,GL_FLOAT,0,mesh->uvArray);
+
+        glDrawArrays(GL_TRIANGLES,0,mesh->numVerts);
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_NORMAL_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glTranslated(-pos.x, -pos.y, -pos.z);
+        glRotated(-rot.z, 0.0, 0.0, 1.0);
+        glRotated(-rot.y, 0.0, 1.0, 0.0);
+        glRotated(-rot.x, 1.0, 0.0, 0.0);
+        glScaled(1/globalScale.x, 1/globalScale.y, 1/globalScale.z);
+    }
+
     int render()
     {
         //cout << "Render" << endl;
@@ -405,7 +450,6 @@ public:
     {
         return "1.0.0";
     }
-
 };
 
 NukeOGL* NukeOGL::_main;

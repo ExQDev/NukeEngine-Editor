@@ -3,8 +3,8 @@
 #include <boost/container/list.hpp>
 #include <boost/function.hpp>
 
-using namespace boost::container;
 namespace b = boost;
+namespace bc = b::container;
 
 class Mouse
 {
@@ -14,10 +14,10 @@ private:
     Mouse() {}
     ~Mouse(){}
 
-    list<b::function<void(int button, int state, int x, int y)>> _onKey;
-    list<b::function<void(int button, int state, int x, int y)>> _onWheel;
-    list<b::function<void(int x, int y)>> _onMove;
-    list<b::function<void(int x, int y)>> _onPMove;
+    bc::list<b::function<void(int button, int state, int x, int y)>> _onKey;
+    bc::list<b::function<void(int button, int state, int x, int y)>> _onWheel;
+    bc::list<b::function<void(int x, int y)>> _onMove;
+    bc::list<b::function<void(int x, int y)>> _onPMove;
 
     void key(int button, int state, int x, int y)
     {

@@ -20,10 +20,10 @@ public:
     aiMaterial* aiMat;
 
     void ImportAiMaterial(aiMaterial * m){
-        aiString diffName;
-        m->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &diffName);
-        cout << "DIFF_NAME: " << diffName.C_Str() << endl;
-        aiMat = m;
+        //aiString diffName;
+        //m->GetTexture(aiTextureType::aiTextureType_DIFFUSE, 0, &diffName);
+        //cout << "DIFF_NAME: " << diffName.C_Str() << endl;
+        //aiMat = m;
     }
 };
 #endif // !NUKEE_MATERIAL_H
