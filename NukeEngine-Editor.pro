@@ -8,93 +8,28 @@ win32:RC_ICONS += res/logo.ico
 
 DEFINES += GLM_ENABLE_EXPERIMENTAL EDITOR
 
-LIBS += -L/usr/local/lib -lglut -lGL -lGLU -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl -lassimp
+CONFIG(debug, debug|release) {
+    DESTDIR = debug
+} else {
+    DESTDIR = release
+}
 
-INCLUDEPATH += deps/imgui
+LIBS += -L/usr/local/lib -lglut -lGL -lGLU -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl -lassimp
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../build-NukeEngine-Desktop_Qt_5_10_1_GCC_64bit-Debug/release/ -lNukeEngine
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../build-NukeEngine-Desktop_Qt_5_10_1_GCC_64bit-Debug/debug/ -lNukeEngine
+else:unix: LIBS += -L$$PWD/../NukeEngine/build/$$DESTDIR/ -lNukeEngine
+
+INCLUDEPATH += $$PWD/../NukeEngine $$PWD/../NukeEngine/deps/imgui
+DEPENDPATH += $$PWD/../NukeEngine
 
 SOURCES += \
         main.cpp \
-    deps/imgui/imgui.cpp \
-    deps/imgui/imgui_demo.cpp \
-    deps/imgui/imgui_draw.cpp \
-    API/Model/Vector.cpp \
-    deps/lodepng/lodepng_util.cpp \
-    deps/lodepng/lodepng.cpp \
-    deps/ImGuizmo/ImGuizmo.cpp \
-    deps/ImGuizmo/ImSequencer.cpp
 
 HEADERS += \
-    backend/lua.h \
-    deps/imgui/imconfig.h \
-    deps/imgui/imgui.h \
-    deps/imgui/imgui_internal.h \
-    deps/imgui/stb_rect_pack.h \
-    deps/imgui/stb_textedit.h \
-    deps/imgui/stb_truetype.h \
-    deps/LuaBridge/Source/LuaBridge/detail/CFunctions.h \
-    deps/LuaBridge/Source/LuaBridge/detail/ClassInfo.h \
-    deps/LuaBridge/Source/LuaBridge/detail/Constructor.h \
-    deps/LuaBridge/Source/LuaBridge/detail/dump.h \
-    deps/LuaBridge/Source/LuaBridge/detail/FuncTraits.h \
-    deps/LuaBridge/Source/LuaBridge/detail/Iterator.h \
-    deps/LuaBridge/Source/LuaBridge/detail/LuaException.h \
-    deps/LuaBridge/Source/LuaBridge/detail/LuaHelpers.h \
-    deps/LuaBridge/Source/LuaBridge/detail/LuaRef.h \
-    deps/LuaBridge/Source/LuaBridge/detail/Namespace.h \
-    deps/LuaBridge/Source/LuaBridge/detail/Stack.h \
-    deps/LuaBridge/Source/LuaBridge/detail/TypeList.h \
-    deps/LuaBridge/Source/LuaBridge/detail/TypeTraits.h \
-    deps/LuaBridge/Source/LuaBridge/detail/Userdata.h \
-    deps/LuaBridge/Source/LuaBridge/LuaBridge.h \
-    deps/LuaBridge/Source/LuaBridge/RefCountedObject.h \
-    deps/LuaBridge/Source/LuaBridge/RefCountedPtr.h \
     editor/editorui.h \
-    gui/gui.h \
-    input/keyboard.h \
-    input/mouse.h \
-    render/opengl/nukeogl.h \
-    render/irender.h \
-    config.h \
-    API/Model/Camera.h \
-    API/Model/Clock.h \
-    API/Model/Collider.h \
-    API/Model/Color.h \
-    API/Model/Component.h \
-    API/Model/Game.h \
-    API/Model/GameObject.h \
-    API/Model/ID.h \
-    API/Model/Include.h \
-    API/Model/Layers.h \
-    API/Model/Light.h \
-    API/Model/Material.h \
-    API/Model/Math.h \
-    API/Model/Mesh.h \
-    API/Model/MeshRenderer.h \
-    API/Model/Module.h \
-    API/Model/Package.h \
-    API/Model/Resource.h \
-    API/Model/Scene.h \
-    API/Model/Script.h \
-    API/Model/Shader.h \
-    API/Model/Texture.h \
-    API/Model/Time.h \
-    API/Model/Transform.h \
-    API/Model/Vector.h \
-    interface/EditorMenu/MenuItem.h \
-    interface/EditorMenu/MenuStrip.h \
-    interface/EditorInstance.h \
-    interface/NUKEEInteface.h \
-    interface/Modular.h \
-    interface/AppInstance.h \
-    import/assimporter.h \
-    API/Model/resdb.h \
-    deps/lodepng/lodepng_util.h \
-    deps/lodepng/lodepng.h \
-    deps/ImGuizmo/ImGuizmo.h \
-    deps/ImGuizmo/ImSequencer.h \
-    API/Model/ray.h
 
 DISTFILES += \
-    deps/im3d/README.md \
-    deps/im3d/LICENSE \
-    res/logo.ico
+    res/logo.ico \
+    config/main.lua \
+    fonts/OpenSansLight.ttf \
+    imgui.ini

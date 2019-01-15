@@ -152,9 +152,7 @@ void cube (void) {
 void RenderObject(GameObject* go){
     for(auto goc : go->children)
     {
-        //b::function<void(Mesh* mesh, Material* mat, Transform* transform)> cb = b::bind(b::mem_fn(&iRender::renderObject), iRender::getSingleton(), _1, _2, _3);
-        //goc->GetComponent<MeshRenderer>()->SetRenderCalback(cb);
-        goc->Update<MeshRenderer>();//RenderObject(goc);
+        goc->Update<MeshRenderer>();
     }
 }
 
@@ -168,20 +166,10 @@ void RenderScene(){
     }
 }
 
-
-
-int main()
-{
+iRender* PreInitRender(){
     iRender * render = NukeOGL::getSingleton();
-    KeyBoard* keyboard = KeyBoard::getSingleton();
-    Config* config = Config::getSingleton();
-    *keyboard += keyboard1;
-    *keyboard &= keyboard2;
-    *keyboard *= special;
-    *keyboard |= specialup;
-    auto gl = (NukeOGL*)render;
 
-//    testRender(gl);
+    auto gl = (NukeOGL*)render;
     gl->_UIinit = editorinit;
     gl->_UIkeyaboardUp = editorkeyaboardUp;
     gl->_UIkeyboard = editorkeyboard;
@@ -192,20 +180,39 @@ int main()
     gl->_UIreshape = editorreshape;
     gl->_UIspecial = editorspecial;
     gl->_UIspecialUp = editorspecialUp;
-//    testRender(gl);
+
     render->setOnRender(RenderScene);
     render->setOnGUI(editorDraw);
-    render->init(config->window.w, config->window.h);
 
+
+    return render;
+}
+
+void InitInput(){
+    KeyBoard* keyboard = KeyBoard::getSingleton();
+    *keyboard += keyboard1;
+    *keyboard &= keyboard2;
+    *keyboard *= special;
+    *keyboard |= specialup;
+}
+
+
+int main()
+{
+    iRender* render = PreInitRender();
+    Config* config = Config::getSingleton();
     InitEngine();
+    render->init(config->window.w, config->window.h);
     cout << "> Render: " << render << endl;
+
     InitModules(EditorInstance::GetSingleton());
-    CreateDemoObjects();
-    cubepositions();
+
+    //CreateDemoObjects();
+    //cubepositions();
 
 
 
-    AssImporter::getSingleton()->Import("mpm_vol.09_p35.OBJ");
+    AssImporter::getSingleton()->Import("DUSTBIN.FBX");
     if(ResDB::getSingleton()->prefabs.size() > 0)
     {
         for(auto pref : ResDB::getSingleton()->prefabs){

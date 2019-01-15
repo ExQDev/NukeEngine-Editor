@@ -1,18 +1,6 @@
 [submodule "deps/imgui"]
 	path = deps/imgui
 	url = https://github.com/ocornut/imgui.git
-[submodule "deps/LuaBridge"]
-	path = deps/LuaBridge
-	url = https://github.com/vinniefalco/LuaBridge.git
-[submodule "deps/assimp"]
-	path = deps/assimp
-	url = https://github.com/assimp/assimp.git
-[submodule "deps/lodepng"]
-	path = deps/lodepng
-	url = https://github.com/lvandeve/lodepng.git
-[submodule "deps/ImGuizmo"]
-	path = deps/ImGuizmo
-	url = https://github.com/CedricGuillemet/ImGuizmo.git
 [submodule "deps/im3d"]
 	path = deps/im3d
 	url = https://github.com/john-chapman/im3d.git

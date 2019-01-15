@@ -139,6 +139,11 @@ private:
     int selectedGameObjectIndex = -1;
     bool freezeWindows = true;
     ImGuiWindowFlags window_flags = 0;
+    Camera* editorCam = nullptr;
+    int prevX, prevY;
+    bool moveKey, crosshair;
+    float lx=0.0f,ly=0.0f,lz=0.0f;
+    const float g_rotation_speed = M_PI/180*0.2;
 public:
     static EditorUI* getSingleton(){
         static EditorUI instance;
@@ -185,7 +190,16 @@ public:
         *KeyBoard::getSingleton() &= b::function<void(unsigned char, int, int)>(b::bind(&EditorUI::OnKeyBoardUp, this, _1, _2, _3));
 
 //        EditorInstance::GetSingleton()->render->setOnGUI(b::bind(&EditorUI::transformSelected, this));
+        EditorInstance* editor = EditorInstance::GetSingleton();
+        editor->PushWindow("nukeeditor-about", b::bind(&EditorUI::winAbout, this));
+        editor->PushWindow("nukeeditor-browser", b::bind(&EditorUI::winBrowser, this));
+        editor->PushWindow("nukeeditor-console", b::bind(&EditorUI::winConsole, this));
+        editor->PushWindow("nukeeditor-hierarchy", b::bind(&EditorUI::winHierarchy, this));
+        editor->PushWindow("nukeeditor-inspector", b::bind(&EditorUI::winInspector, this));
+        editor->PushWindow("nukeeditor-render", b::bind(&EditorUI::winRender, this));
+        editor->PushWindow("nukeeditor-plugins", b::bind(&EditorUI::PluginMGRWindow, this));
 
+        editorCam = EditorInstance::GetSingleton()->currentScene->Get("Editor Camera")->GetComponent<Camera>();
         cout << "EditorUI Initialization finished" << endl;
     }
 
@@ -264,11 +278,11 @@ public:
 
     void InitMenu()
     {
-        EditorInstance::GetSingleton()->menuStrip = new MenuStrip();
-        EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/", "Plugin manager", TogglePluginMGR);
-        EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other", "Deep tools", TogglePluginMGR);
-        EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other/One more level", "...", TogglePluginMGR);
-        EditorInstance::GetSingleton()->menuStrip->AddItem("Tools/Other/One more level/Last", "Wow", TogglePluginMGR);
+        MenuStrip* mstrip = EditorInstance::GetSingleton()->menuStrip = new MenuStrip();
+        mstrip->AddItem("Tools/", "Plugin manager", TogglePluginMGR);
+        mstrip->AddItem("Tools/Other", "Deep tools", TogglePluginMGR);
+        mstrip->AddItem("Tools/Other/One more level", "...", TogglePluginMGR);
+        mstrip->AddItem("Tools/Other/One more level/Last", "Wow", TogglePluginMGR);
     }
 
     bool EditorSubMenu(MenuItem* item)
@@ -605,6 +619,9 @@ public:
     }
 
     void winHierarchy(){
+        if(!win->hierarchy)
+            return;
+
         ImGui::Begin("Hierarchy", &win->hierarchy, window_flags);
         //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&EditorInstance::GetSingleton()->currentScene->hierarchy), EditorInstance::GetSingleton()->currentScene->hierarchy.size());
         DisplayRecursiveGameObjectHierarchy(EditorInstance::GetSingleton()->currentScene->hierarchy);
@@ -612,6 +629,9 @@ public:
     }
 
     void winInspector(){
+        if(!win->inspector)
+            return;
+
         ImGui::Begin("Inspector", &win->inspector, window_flags);
         ImGui::Text("Manipulation space:");
         if (ImGui::RadioButton("Local", EditorInstance::GetSingleton()->manipulationWorld == ImGuizmo::LOCAL))
@@ -696,6 +716,9 @@ public:
     }
 
     void winRender(){
+        if(!win->render)
+            return;
+
         ImGui::Begin("Render", &win->render, window_flags);
         ImVec2 pos = ImGui::GetWindowPos();
         auto tex = dynamic_cast<NukeOGL*>(EditorInstance::GetSingleton()->render)->getRenderTexture();
@@ -713,25 +736,68 @@ public:
     }
 
     void winAbout(){
-        ImGui::Begin("About", &win->render, window_flags);
+        if(!win->about)
+            return;
+
+        ImGui::Begin("About", &win->about, window_flags);
         ImGui::TextWrapped("NukeEngine - free open source game engine, developed by ExQDev team and people:). It was made to help developerss make their games as they like, easy and fast. NukeEngine is modular, and allows you to extend it. It allows your games to be modded too. And looks like Unity and has coder-friendly API:) \nEnjoy!");
         ImGui::End();
     }
 
     void winConsole(){
+        if(!win->console)
+            return;
+
         ImGui::Begin("Console", &win->console, window_flags);
 
         ImGui::End();
     }
 
     void winBrowser(){
+        if(!win->browser)
+            return;
+
         ImGui::Begin("Browser", &win->browser, window_flags);
 
         ImGui::End();
     }
 
+    void AddUnderLine( ImColor col_ )
+        {
+            ImVec2 min = ImGui::GetItemRectMin();
+            ImVec2 max = ImGui::GetItemRectMax();
+            min.y = max.y;
+            ImGui::GetWindowDrawList()->AddLine( min, max, col_, 1.0f );
+        }
+
+        // hyperlink urls
+    void TextURL( const char* name_, const char* URL_, uint8_t SameLineBefore_, uint8_t SameLineAfter_ )
+        {
+            if( 1 == SameLineBefore_ ){ ImGui::SameLine( 0.0f, ImGui::GetStyle().ItemInnerSpacing.x ); }
+            ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered]);
+            ImGui::Text( name_ );
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered())
+            {
+                if( ImGui::IsMouseClicked(0) )
+                {
+                    std::system( (string("start ") + URL_).c_str() );
+                }
+                AddUnderLine( ImGui::GetStyle().Colors[ImGuiCol_ButtonHovered] );
+                ImGui::SetTooltip( "Open in browser\n%s", URL_ );
+            }
+            else
+            {
+                AddUnderLine( ImGui::GetStyle().Colors[ImGuiCol_Button] );
+            }
+            if( 1 == SameLineAfter_ ){ ImGui::SameLine( 0.0f, ImGui::GetStyle().ItemInnerSpacing.x ); }
+    }
+
     void PluginMGRWindow()
     {
+        if(!win->plugmgr)
+            return;
+
         if (ImGui::Begin("Plugins", &win->plugmgr))
         {
             ImGui::TextWrapped("To install plugin put it at `modules` directory.");
@@ -749,7 +815,7 @@ public:
                     ImGui::Text(selectedPlugin->title);
                     ImGui::Text(selectedPlugin->author);
                     ImGui::Text(selectedPlugin->version);
-                    ImGui::Text(selectedPlugin->site);
+                    TextURL(selectedPlugin->site, selectedPlugin->site, 0, 0);
                     ImGui::TextWrapped(selectedPlugin->description);
 
                     if(selectedPlugin.get()->HasSettings())
@@ -790,27 +856,30 @@ public:
         preDraw();
 
         if(freezeWindows)
-            window_flags |= ImGuiWindowFlags_NoMove;
+            window_flags |= ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
         else
             window_flags &= false;
 
 //        cout << "Draw" << endl;
         mainMenu();
 
-        if(win->about)
-            winAbout();
-        if(win->hierarchy)
-            winHierarchy();
-        if(win->browser)
-            winBrowser();
-        if(win->console)
-            winConsole();
-        if(win->render)
-            winRender();
-        if(win->inspector)
-            winInspector();
-        if(win->plugmgr)
-            PluginMGRWindow();
+        for(auto tup: EditorInstance::GetSingleton()->editorWindows){
+            tup.second();
+        }
+//        if(win->about)
+//            winAbout();
+//        if(win->hierarchy)
+//            winHierarchy();
+//        if(win->browser)
+//            winBrowser();
+//        if(win->console)
+//            winConsole();
+//        if(win->render)
+//            winRender();
+//        if(win->inspector)
+//            winInspector();
+//        if(win->plugmgr)
+//            PluginMGRWindow();
 
 //        cout << "End Draw" << endl;
 
@@ -830,11 +899,57 @@ public:
             else if (dir < 0)
                 io.MouseWheel -= 1.0;
         (void)button; // Unused
+
+        editorCam->transform->position += editorCam->transform->direction() * dir * 3;
     }
 
     void motion(int x, int y){
         ImGuiIO& io = ImGui::GetIO();
         io.MousePos = ImVec2((float)x, (float)y);
+
+        if(!editorCam->freeMode)
+            return;
+
+        static bool just_warped = false;
+
+        if(just_warped) {
+            just_warped = false;
+            return;
+        }
+
+        if(moveKey) {
+            const double limit = 89.0 * M_PI / 180.0;
+
+//            glutWarpPointer(renderer->width/2, renderer->height/2);
+
+            if(prevX == 0 && prevY == 0)
+            {
+                prevX = x;
+                prevY = y;
+            }
+
+            int dx = x - prevX,
+                    dy = y - prevY;
+
+
+            //cout << "CAM ROT [ " << transform->rotation.toStringA() << " ]" << endl;
+            prevX = x;
+            prevY = y;
+            editorCam->transform->rotation.x += ((editorCam->invertMouse) ? 1 : -1) * dy * g_rotation_speed;// > 0 ? 0.5 : -0.5;
+            editorCam->transform->rotation.y += dx * g_rotation_speed;// > 0 ? 0.5 : -0.5;
+            if(editorCam->transform->rotation.x < -limit)
+                editorCam->transform->rotation.x = -limit;
+
+            if(editorCam->transform->rotation.x > limit)
+                editorCam->transform->rotation.x = limit;
+            just_warped = true;
+        }
+
+
+        if(crosshair)
+            glutSetCursor(GLUT_CURSOR_FULL_CROSSHAIR);
+        else
+            glutSetCursor(GLUT_CURSOR_LEFT_ARROW);
     }
 
     void mouse(int glut_button, int state, int x, int y)
@@ -849,6 +964,21 @@ public:
             io.MouseDown[button] = true;
         if (button != -1 && state == GLUT_UP)
             io.MouseDown[button] = false;
+
+        prevX = x;
+        prevY = y;
+        if(glut_button == GLUT_RIGHT_BUTTON)
+        {
+            if(state == GLUT_DOWN)
+            {
+                moveKey = true;
+                crosshair = true;
+            }
+            if(state == GLUT_UP){
+                moveKey = false;
+                crosshair = false;
+            }
+        }
     }
 
 
