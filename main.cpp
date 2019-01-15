@@ -212,7 +212,7 @@ int main()
 
 
 
-    AssImporter::getSingleton()->Import("DUSTBIN.FBX");
+    AssImporter::getSingleton()->Import("mpm_vol.09_p35.OBJ");
     if(ResDB::getSingleton()->prefabs.size() > 0)
     {
         for(auto pref : ResDB::getSingleton()->prefabs){
