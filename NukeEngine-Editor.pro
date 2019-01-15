@@ -14,13 +14,6 @@ CONFIG(debug, debug|release) {
     DESTDIR = release
 }
 
-LIBS += -L/usr/local/lib -lglut -lGL -lGLU -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl -lassimp
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../build-NukeEngine-Desktop_Qt_5_10_1_GCC_64bit-Debug/release/ -lNukeEngine
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../build-NukeEngine-Desktop_Qt_5_10_1_GCC_64bit-Debug/debug/ -lNukeEngine
-else:unix: LIBS += -L$$PWD/../NukeEngine/build/$$DESTDIR/ -lNukeEngine
-
-INCLUDEPATH += $$PWD/../NukeEngine $$PWD/../NukeEngine/deps/imgui
-DEPENDPATH += $$PWD/../NukeEngine
 
 SOURCES += \
         main.cpp \
@@ -33,3 +26,11 @@ DISTFILES += \
     config/main.lua \
     fonts/OpenSansLight.ttf \
     imgui.ini
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/release/ -lNukeEngine
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/debug/ -lNukeEngine
+else:unix: LIBS += -L$$PWD/../NukeEngine/build/$$DESTDIR/ -lNukeEngine -L/usr/local/lib -lglut -lGL -lGLU -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl -lassimp
+
+INCLUDEPATH += $$PWD/../NukeEngine \
+    $$PWD/../NukeEngine/deps/LuaBridge/Source     # uncomment this if it will tell you that something in LuaBridge cannot be found
+DEPENDPATH += $$PWD/../NukeEngine
