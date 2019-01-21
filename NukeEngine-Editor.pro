@@ -27,9 +27,11 @@ DISTFILES += \
     fonts/OpenSansLight.ttf \
     imgui.ini
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/release/ -lNukeEngine
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/debug/ -lNukeEngine
-else:unix: LIBS += -L$$PWD/../NukeEngine/build/$$DESTDIR/ -lNukeEngine -L/usr/local/lib -lglut -lGL -lGLU -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl -lassimp
+LIBS += -L/usr/local/lib -lglut -lGL -lGLU -lGLEW -pthread -lboost_thread -lboost_system -lboost_filesystem -llua -ldl -lassimp
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/ -lNukeEngine
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/ -lNukeEngine
+else:unix: LIBS += -L$$PWD/../NukeEngine/build/$$DESTDIR/ -lNukeEngine
 
 INCLUDEPATH += $$PWD/../NukeEngine \
     $$PWD/../NukeEngine/deps/LuaBridge/Source     # uncomment this if it will tell you that something in LuaBridge cannot be found
