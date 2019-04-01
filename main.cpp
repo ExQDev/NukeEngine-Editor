@@ -202,6 +202,7 @@ int main()
     iRender* render = PreInitRender();
     Config* config = Config::getSingleton();
     InitEngine();
+    InitInput();
     render->init(config->window.w, config->window.h);
     cout << "> Render: " << render << endl;
 

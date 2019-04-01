@@ -11,6 +11,7 @@ Just clone this repo near the NukeEngine repo, and do instructions, provided in 
 # Building
 
 Use Qt Creator to build it.
+If after start it crashes with error about assertion in font loader or configs, please copy `config` and `fonts` directory to build directory, where executable is located.
 
 # Develop
 
