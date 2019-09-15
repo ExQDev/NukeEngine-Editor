@@ -4,10 +4,24 @@ CONFIG += x86_64
 CONFIG -= app_bundle
 CONFIG -= qt
 
-unix:!macx{
-ICON += res/logo.ico
+# Qt 5.3 and lower doesn't recognize "c++14". Use c++11 and then replace
+# the compiler flags with c++14.
+contains(QT_MAJOR_VERSION, 5):lessThan(QT_MINOR_VERSION, 4) {
+    CONFIG += c++11
+    QMAKE_CXXFLAGS_CXX11 = $$replace(QMAKE_CXXFLAGS_CXX11, "std=c\+\+11", "std=c++1y")
+    QMAKE_CXXFLAGS_CXX11 = $$replace(QMAKE_CXXFLAGS_CXX11, "std=c\+\+0x", "std=c++1y")
 }
+
+# Qt 4 doesn't even know about C++11, so just add c++14 directly.
+contains(QT_MAJOR_VERSION, 4) {
+    QMAKE_CXXFLAGS += -std=c++1y
+}
+
+!macx{
+ICON += res/logo.ico
 win32:RC_ICONS += res/logo.ico
+}
+
 macx{
 ICON = myapp.icns
 }
@@ -36,17 +50,14 @@ DISTFILES += \
 
 
 macx{
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/release/ -lNukeEngine.1.0.0
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/debug/ -lNukeEngine.1.0.0
-else:unix: LIBS += -L$$PWD/../NukeEngine/build/debug/ -lNukeEngine.1.0.0
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/release/ -lNukeEngine
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/debug/ -lNukeEngine
+else:unix: LIBS += -L$$PWD/../NukeEngine/build/debug/ -lNukeEngine
 
-LIBS += -L/System/Library -L/Library -L~/Library -L/usr/local/lib -lboost_thread-mt -lboost_system -lboost_filesystem -llua -lassimp -lGLEW -lGLUT -framework OpenGL -framework GLUT -framework Cocoa -framework CoreFoundation
+LIBS += -L/System/Library -L/Library -L/usr/local/lib -lboost_thread-mt -lboost_system -lboost_filesystem -llua -lassimp -lGLEW -lGLUT -lGLFW -framework OpenGL -framework GLUT -framework Cocoa -framework CoreFoundation
 
-INCLUDEPATH += $$PWD/../NukeEngine \
-    /usr/local/include \
-    $$PWD/../NukeEngine/deps/glm \
-    $$PWD/../NukeEngine/deps \
-    $$PWD/../NukeEngine/deps/LuaBridge/Source
+INCLUDEPATH += /usr/local/include
+
 
 DEPENDPATH += $$PWD/../NukeEngine
 
@@ -61,8 +72,23 @@ win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../NukeEngine/build/debug/ -lNukeEngine
 else:unix: LIBS += -L$$PWD/../NukeEngine/build/$$DESTDIR/ -lNukeEngine
 
-INCLUDEPATH += $$PWD/../NukeEngine \
-    $$PWD/../NukeEngine/deps/LuaBridge/Source    # uncomment this if it will tell you that something in LuaBridge cannot be found
+INCLUDEPATH +=
 
 DEPENDPATH += $$PWD/../NukeEngine
 }
+
+
+INCLUDEPATH += $$PWD/../NukeEngine \
+    $$PWD/../NukeEngine/deps/glm \
+#    $$PWD/../NukeEngine/deps \
+    $$PWD/../NukeEngine/deps/bgfx/include \
+    $$PWD/../NukeEngine/deps/bx/include \
+#    $$PWD/../NukeEngine/deps/glfw/include \
+    $$PWD/../NukeEngine/deps/LuaBridge/Source
+
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/../NukeEngine/deps/bgfx/build/osx64_clang/bin/release/ -lbgfx-shared-libDebug
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/../NukeEngine/deps/bgfx/build/osx64_clang/bin/debug/ -lbgfx-shared-libDebug
+else:unix: LIBS += -L$$PWD/../NukeEngine/deps/bgfx/build/osx64_clang/bin/ -lbgfx-shared-libDebug
+
+INCLUDEPATH += $$PWD/../NukeEngine/deps/bgfx/include
+DEPENDPATH += $$PWD/../NukeEngine/deps/bgfx/include

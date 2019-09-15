@@ -1,6 +1,7 @@
 #include <iostream>
 #include <API/Model/Include.h>
-#include <render/opengl/nukeogl.h>
+//#include <render/opengl/nukeogl.h>
+#include <render/universal/nukebgfx.h>
 #include <input/keyboard.h>
 #include <config.h>
 #include <editor/editorui.h>
@@ -57,19 +58,19 @@ void specialup(int key, int x, int y){
 //    cout << "[special UP] ( " << key << ", " << x << ", " << y << ")" << endl;
 }
 
-void testRender(NukeOGL *gl){
-    cout << "=========== Render callbacks addresses[" << gl << "] ==============" << endl;
-    cout << gl->_UIinit << endl;
-    cout << gl->_UIkeyaboardUp << endl;
-    cout << gl->_UIkeyboard << endl;
-    cout << gl->_UImouse << endl;
-    cout << gl->_UImove << endl;
-    cout << gl->_UIpmove << endl;
-    cout << gl->_UIreshape << endl;
-    cout << gl->_UIspecial << endl;
-    cout << gl->_UIspecialUp << endl;
-    cout << "=============================== END ================================" << endl;
-}
+//void testRender(NukeOGL *gl){
+//    cout << "=========== Render callbacks addresses[" << gl << "] ==============" << endl;
+//    cout << gl->_UIinit << endl;
+//    cout << gl->_UIkeyaboardUp << endl;
+//    cout << gl->_UIkeyboard << endl;
+//    cout << gl->_UImouse << endl;
+//    cout << gl->_UImove << endl;
+//    cout << gl->_UIpmove << endl;
+//    cout << gl->_UIreshape << endl;
+//    cout << gl->_UIspecial << endl;
+//    cout << gl->_UIspecialUp << endl;
+//    cout << "=============================== END ================================" << endl;
+//}
 
 std::string MultiString(std::string str, int times){
     std::string out = "";
@@ -107,7 +108,7 @@ void InitEngine()
     if (EditorInstance::GetSingleton()->currentScene->hierarchy.empty())
     {
         GameObject* edcam = new GameObject("Editor Camera");
-        iRender* rnd = NukeOGL::getSingleton();
+        iRender* rnd = NukeBGFX::getSingleton();
         Camera* edcamc = new Camera(edcam, rnd);
         edcamc->transform->position = { 0, 10, -10};
         edcamc->freeMode = true;
@@ -167,9 +168,9 @@ void RenderScene(){
 }
 
 iRender* PreInitRender(){
-    iRender * render = NukeOGL::getSingleton();
+    iRender * render = NukeBGFX::getSingleton();
 
-    auto gl = (NukeOGL*)render;
+    auto gl = (NukeBGFX*)render;
     gl->_UIinit = editorinit;
     gl->_UIkeyaboardUp = editorkeyaboardUp;
     gl->_UIkeyboard = editorkeyboard;

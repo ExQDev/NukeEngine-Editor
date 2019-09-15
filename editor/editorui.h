@@ -721,12 +721,15 @@ public:
 
         ImGui::Begin("Render", &win->render, window_flags);
         ImVec2 pos = ImGui::GetWindowPos();
-        auto tex = dynamic_cast<NukeOGL*>(EditorInstance::GetSingleton()->render)->getRenderTexture();
+// TODO: bring it back
+//        auto tex = dynamic_cast<NukeOGL*>(EditorInstance::GetSingleton()->render)->getRenderTexture();
         ImVec2 maxPos = ImVec2(pos.x + ImGui::GetWindowSize().x, pos.y + ImGui::GetWindowSize().y + 2);
-        ImGui::GetWindowDrawList()->AddImage((void *)tex,
-                                             ImVec2(ImGui::GetItemRectMin().x + 0,
-                                            ImGui::GetItemRectMin().y - 2),
-                                             maxPos, ImVec2(0,1), ImVec2(1,0));
+//        ImGui::GetWindowDrawList()->AddImage((void *)tex,
+//                                             ImVec2(ImGui::GetItemRectMin().x + 0,
+//                                            ImGui::GetItemRectMin().y - 2),
+//                                             maxPos, ImVec2(0,1), ImVec2(1,0));
+
+
 //        if(EditorInstance::GetSingleton()->selectedInHieararchy){
 //            EditTransform(&EditorInstance::GetSingleton()->selectedInHieararchy->transform);
 //        }
