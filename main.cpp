@@ -1,5 +1,6 @@
 #include <iostream>
-#include <API/Model/Include.h>
+#include "API/Model/Include.h"
+//#include <API/Model/GameObject.h>
 //#include <render/opengl/nukeogl.h>
 #include <render/universal/nukebgfx.h>
 #include <input/keyboard.h>
@@ -10,9 +11,9 @@
 #include <interface/EditorInstance.h>
 #include <import/assimporter.h>
 #else
-#include <API/Model/AppInstance.h>
+#include <interface/AppInstance.h>
 #endif
-#include <deps/lodepng/lodepng.h>
+#include <lodepng/lodepng.h>
 
 using namespace std;
 
@@ -81,6 +82,9 @@ std::string MultiString(std::string str, int times){
 }
 
 void PrintHierarchy(GameObject* go, int level){
+	if (!go)
+		return;
+
     cout << MultiString("\t", level) << go->name << "\t(parentgpos: " << (go->parent ? go->parent->transform.globalPosition().toStringA() : "null") << ")" << ";; POS: " << go->transform.globalPosition().toStringA() << endl;
     if(go->children.size() > 0)
         for(auto child : go->children)
@@ -105,6 +109,10 @@ void CreateDemoObjects(){
 
 void InitEngine()
 {
+	cout << "Engine initialization..." << endl;
+	cout << "Editor is: " << EditorInstance::GetSingleton() << endl;
+	cout << "Current scene is: " << EditorInstance::GetSingleton()->currentScene << endl;
+	
     if (EditorInstance::GetSingleton()->currentScene->hierarchy.empty())
     {
         GameObject* edcam = new GameObject("Editor Camera");
@@ -118,11 +126,16 @@ void InitEngine()
         //edcamc->renderer->currentScene = EditorInstance::GetSingleton()->currentScene;
     }
     EditorInstance::GetSingleton()->StartUpdateThread();
+	cout << "Update is bootstraped. Next stage..." << endl;
 }
 
 void Unload()
 {
+#ifdef WIN32
+	Sleep(1000);
+#else
     usleep(1000);
+#endif // WIN32
     UnloadModules();
 }
 
@@ -168,8 +181,11 @@ void RenderScene(){
 }
 
 iRender* PreInitRender(){
+	cout << "Render preinit..." << endl;
+
     iRender * render = NukeBGFX::getSingleton();
 
+	cout << "Renderer is: " << render << endl;
     auto gl = (NukeBGFX*)render;
     gl->_UIinit = editorinit;
     gl->_UIkeyaboardUp = editorkeyaboardUp;
@@ -185,34 +201,42 @@ iRender* PreInitRender(){
     render->setOnRender(RenderScene);
     render->setOnGUI(editorDraw);
 
+	cout << "Preinit done... Next stage..." << endl;
 
     return render;
 }
 
-void InitInput(){
-    KeyBoard* keyboard = KeyBoard::getSingleton();
+void InitInput(KeyBoard *keyboard){
+	cout << "Init input..." << endl;
     *keyboard += keyboard1;
     *keyboard &= keyboard2;
     *keyboard *= special;
     *keyboard |= specialup;
+	cout << "Done!... Next stage..." << endl;
 }
 
 
 int main()
 {
+	cout << "NukeEngine starting... Welcome!" << endl;
     iRender* render = PreInitRender();
     Config* config = Config::getSingleton();
+	EditorInstance* instance = EditorInstance::GetSingleton();
+	instance->config = config;
+	instance->keyboard = KeyBoard::getSingleton();
+	instance->mouse = Mouse::getSingleton();
+
     InitEngine();
-    InitInput();
+	InitInput(instance->keyboard);
     render->init(config->window.w, config->window.h);
     cout << "> Render: " << render << endl;
 
-    InitModules(EditorInstance::GetSingleton());
+	cout << "Modules initialization..." << endl;
+    InitModules(instance);
 
     //CreateDemoObjects();
     //cubepositions();
-
-
+	cout << "Done! Importing model..." << endl;
 
     AssImporter::getSingleton()->Import("mpm_vol.09_p35.OBJ");
     if(ResDB::getSingleton()->prefabs.size() > 0)
@@ -233,6 +257,8 @@ int main()
 
     for(auto g : EditorInstance::GetSingleton()->currentScene->hierarchy)
         PrintHierarchy(g, 0);
+
+	cout << "All done. Starting render loop." << endl;
 
     render->loop();
 

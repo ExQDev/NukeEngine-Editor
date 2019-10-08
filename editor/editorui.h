@@ -1,14 +1,15 @@
 #ifndef EDITORUI_H
 #define EDITORUI_H
-#include <deps/imgui/imgui.h>
-#include <deps/imgui/imgui_internal.h>
-#include <deps/ImGuizmo/ImGuizmo.h>
+#include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
+#include "ImGuizmo/ImGuizmo.h"
 #include <GL/freeglut.h>
-#include <gui/gui.h>
-#include <config.h>
-#include <interface/EditorInstance.h>
-#include <interface/Modular.h>
+#include "gui/gui.h"
+#include "config.h"
+#include "interface/EditorInstance.h"
+#include "interface/Modular.h"
 #include <boost/container/list.hpp>
+#include <math.h>
 
 #ifdef _MSC_VER
 #pragma warning (disable: 4505) // unreferenced local function has been removed
@@ -156,9 +157,11 @@ public:
     void SetUp(){
         cout << "EditorUI initialization..." << endl;
         context = ImGui::CreateContext();
+		cout << "Context: " << context << endl;
 
         ImGuiIO& io = ImGui::GetIO();
-        g_Time = 0;
+		cout << "Io: " << &io << endl;
+		g_Time = 0;
 
         // Glut has 1 function for characters and one for "special keys". We map the characters in the 0..255 range and the keys above.
         io.KeyMap[ImGuiKey_Tab]         = '\t'; // == 9 == CTRL+I
@@ -183,14 +186,22 @@ public:
         io.KeyMap[ImGuiKey_Y]           = 'Y';
         io.KeyMap[ImGuiKey_Z] = 'Z';
 
-        GUI::getSingleton()->setup();
-        io.Fonts->AddFontFromFileTTF(Config::getSingleton()->window.mainFont.c_str(), 19.f);
-        win = &Config::getSingleton()->window;
-        InitMenu();
-        *KeyBoard::getSingleton() &= b::function<void(unsigned char, int, int)>(b::bind(&EditorUI::OnKeyBoardUp, this, _1, _2, _3));
+		cout << "SetUp GUI...." << endl;
+		cout << "Editor is... " << EditorInstance::GetSingleton() << endl;
+		cout << "Config is... " << Config::getSingleton() << endl;
+        GUI::getSingleton()->setup(context);
+		
+		win = &Config::getSingleton()->window;
+
+		cout << "Load font from... " << win->mainFont << endl;
+        //io.Fonts->AddFontFromFileTTF(Config::getSingleton()->window.mainFont, 19.f);
+        
+        //InitMenu();
+        //*KeyBoard::getSingleton() &= b::function<void(unsigned char, int, int)>(b::bind(&EditorUI::OnKeyBoardUp, this, _1, _2, _3));
 
 //        EditorInstance::GetSingleton()->render->setOnGUI(b::bind(&EditorUI::transformSelected, this));
         EditorInstance* editor = EditorInstance::GetSingleton();
+		cout << "Editor is " << editor << ";, this is: " << this << endl;
         editor->PushWindow("nukeeditor-about", b::bind(&EditorUI::winAbout, this));
         editor->PushWindow("nukeeditor-browser", b::bind(&EditorUI::winBrowser, this));
         editor->PushWindow("nukeeditor-console", b::bind(&EditorUI::winConsole, this));
@@ -198,8 +209,13 @@ public:
         editor->PushWindow("nukeeditor-inspector", b::bind(&EditorUI::winInspector, this));
         editor->PushWindow("nukeeditor-render", b::bind(&EditorUI::winRender, this));
         editor->PushWindow("nukeeditor-plugins", b::bind(&EditorUI::PluginMGRWindow, this));
-
-        editorCam = EditorInstance::GetSingleton()->currentScene->Get("Editor Camera")->GetComponent<Camera>();
+		GameObject* camObj = EditorInstance::GetSingleton()->currentScene->Get("Editor Camera");
+        if(camObj)
+			editorCam = camObj->GetComponent<Camera>();
+		else
+		{
+			cout << "Editor Camera not found. Terminating." << endl;
+		}
         cout << "EditorUI Initialization finished" << endl;
     }
 
@@ -866,7 +882,7 @@ public:
 //        cout << "Draw" << endl;
         mainMenu();
 
-        for(auto tup: EditorInstance::GetSingleton()->editorWindows){
+        for(auto tup: *EditorInstance::GetSingleton()->editorWindows){
             tup.second();
         }
 //        if(win->about)
