@@ -121,7 +121,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\NukeEngine\;..\NukeEngine\deps\LuaBridge\Source;..\NukeEngine\deps\bx\include\compat\msvc;..\NukeEngine\deps\bgfx\include;..\NukeEngine\deps\bx\include;.\;..\NukeEngine\include;..\NukeEngine\deps\glm;..\NukeEngine\deps;..\NukeEngine\deps\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\NukeEngine\;..\NukeEngine\deps\LuaBridge\Source;..\NukeEngine\deps\bx\include\compat\msvc;..\NukeEngine\deps\bgfx\include;..\NukeEngine\deps\bx\include;.\include;..\NukeEngine\include;..\NukeEngine\deps\glm;..\NukeEngine\deps;..\NukeEngine\deps\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;GLM_ENABLE_EXPERIMENTAL;EDITOR;_USE_MATH_DEFINES;NOMINMAX;NUKEENGINE_API=__declspec(dllimport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>algorithm;NukeEngine.h;pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <UndefinePreprocessorDefinitions>NUKEENGINE_EXPORTS</UndefinePreprocessorDefinitions>
@@ -131,6 +131,10 @@
       </IgnoreSpecificDefaultLibraries>
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)dist" "$(OutputPath)" /s /i /y /e
+xcopy "$(ProjectDir)res" "$(OutputPath)res" /s /i /y /e</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="config\main.lua" />
@@ -162,7 +166,7 @@
     <ClInclude Include="..\NukeEngine\deps\imgui\stb_truetype.h" />
     <ClInclude Include="..\NukeEngine\deps\lodepng\lodepng.h" />
     <ClInclude Include="..\NukeEngine\deps\lodepng\lodepng_util.h" />
-    <ClInclude Include="editor\editorui.h" />
+    <ClInclude Include="include\editor\editorui.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
