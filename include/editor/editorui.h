@@ -6,7 +6,7 @@
 #include <GL/freeglut.h>
 #include "gui/gui.h"
 #include "config.h"
-#include "interface/EditorInstance.h"
+#include "interface/AppInstance.h"
 #include "interface/Modular.h"
 #include <boost/container/list.hpp>
 #include <math.h>
@@ -125,7 +125,7 @@ bool HierarchyGetter(void* data, int n, const char** out_text)
   const bc::list<GameObject*>* v = (bc::list<GameObject*>*)data;
   auto it = v->begin();
   boost::advance(it, n);
-  *out_text = (*it)->name.c_str();
+  *out_text = (*it)->GetName().c_str();
   return true;
 }
 
@@ -155,12 +155,12 @@ public:
 
 
     void SetUp(){
-        cout << "[editorui]\t" << "EditorUI initialization..." << endl;
+        cout << "[editorui]\t\t" << "EditorUI initialization..." << endl;
         context = ImGui::CreateContext();
-		cout << "[editorui]\t" << "Context: " << context << endl;
+		cout << "[editorui]\t\t" << "Context: " << context << endl;
 
         ImGuiIO& io = ImGui::GetIO();
-		cout << "[editorui]\t" << "Io: " << &io << endl;
+		cout << "[editorui]\t\t" << "Io: " << &io << endl;
 		g_Time = 0;
 
         // Glut has 1 function for characters and one for "special keys". We map the characters in the 0..255 range and the keys above.
@@ -186,22 +186,22 @@ public:
         io.KeyMap[ImGuiKey_Y]           = 'Y';
         io.KeyMap[ImGuiKey_Z] = 'Z';
 
-		cout << "[editorui]\t" << "SetUp GUI...." << endl;
-		cout << "[editorui]\t" << "Editor is... " << EditorInstance::GetSingleton() << endl;
-		cout << "[editorui]\t" << "Config is... " << Config::getSingleton() << endl;
+		cout << "[editorui]\t\t" << "SetUp GUI...." << endl;
+		cout << "[editorui]\t\t" << "Editor is... " << AppInstance::GetSingleton() << endl;
+		cout << "[editorui]\t\t" << "Config is... " << Config::getSingleton() << endl;
         GUI::getSingleton()->setup(context);
 		
 		win = &Config::getSingleton()->window;
 
-		cout << "[editorui]\t" << "Load font from... " << win->mainFont << endl;
-        //io.Fonts->AddFontFromFileTTF(Config::getSingleton()->window.mainFont, 19.f);
+		cout << "[editorui]\t\t" << "Load font from... " << win->mainFont << endl;
+        io.Fonts->AddFontFromFileTTF(Config::getSingleton()->window.mainFont, 19.f);
         
-        //InitMenu();
-        //*KeyBoard::getSingleton() &= b::function<void(unsigned char, int, int)>(b::bind(&EditorUI::OnKeyBoardUp, this, _1, _2, _3));
+        InitMenu();
+        *KeyBoard::getSingleton() &= b::function<void(unsigned char, int, int)>(b::bind(&EditorUI::OnKeyBoardUp, this, _1, _2, _3));
 
-//        EditorInstance::GetSingleton()->render->setOnGUI(b::bind(&EditorUI::transformSelected, this));
-        EditorInstance* editor = EditorInstance::GetSingleton();
-		cout << "[editorui]\t" << "Editor is " << editor << ";, this is: " << this << endl;
+//        AppInstance::GetSingleton()->render->setOnGUI(b::bind(&EditorUI::transformSelected, this));
+        AppInstance* editor = AppInstance::GetSingleton();
+		cout << "[editorui]\t\t" << "Editor is " << editor << ";, this is: " << this << endl;
         editor->PushWindow("nukeeditor-about", b::bind(&EditorUI::winAbout, this));
         editor->PushWindow("nukeeditor-browser", b::bind(&EditorUI::winBrowser, this));
         editor->PushWindow("nukeeditor-console", b::bind(&EditorUI::winConsole, this));
@@ -209,14 +209,16 @@ public:
         editor->PushWindow("nukeeditor-inspector", b::bind(&EditorUI::winInspector, this));
         editor->PushWindow("nukeeditor-render", b::bind(&EditorUI::winRender, this));
         editor->PushWindow("nukeeditor-plugins", b::bind(&EditorUI::PluginMGRWindow, this));
-		GameObject* camObj = EditorInstance::GetSingleton()->currentScene->Get("Editor Camera");
+		GameObject* camObj = editor->currentScene->Get("Editor Camera");
+		cout << "[editorui]\t\t" << "HIERARCHY SIZE: " << editor->currentScene->GetHierarchy().size() << endl;
+		cout << "[editorui]\t\t" << "CAM:  " << camObj << endl;
         if(camObj)
 			editorCam = camObj->GetComponent<Camera>();
 		else
 		{
-			cout << "[editorui]\t" << "Editor Camera not found. Terminating." << endl;
+			cout << "[editorui]\t\t" << "Editor Camera not found. Terminating." << endl;
 		}
-        cout << "[editorui]\t" << "EditorUI Initialization finished" << endl;
+        cout << "[editorui]\t\t" << "EditorUI Initialization finished" << endl;
     }
 
     bool ImGui_ImplOpenGL2_CreateFontsTexture()
@@ -268,7 +270,7 @@ public:
     }
 
     void preDraw(){
-//        cout << "[editorui]\t" << "PreDraw" << endl;
+//        cout << "[editorui]\t\t" << "PreDraw" << endl;
         ImGuiIO& io = ImGui::GetIO();
         int current_time = glutGet(GLUT_ELAPSED_TIME);
         io.DeltaTime = (current_time - g_Time) / 1000.0f;
@@ -277,24 +279,24 @@ public:
             ImGui_ImplOpenGL2_CreateDeviceObjects();
         // Start the frame
         ImGui::NewFrame();
-//        cout << "[editorui]\t" << "End PreDraw" << endl;
+//        cout << "[editorui]\t\t" << "End PreDraw" << endl;
     }
 
     void postDraw(){
-//        cout << "[editorui]\t" << "PostDraw" << endl;
+//        cout << "[editorui]\t\t" << "PostDraw" << endl;
         ImGui::Render();
         ImGuiIO& io = ImGui::GetIO();
         glViewport(0, 0, (GLsizei)io.DisplaySize.x, (GLsizei)io.DisplaySize.y);
         glClearColor(0.0, 0.0, 0.0, 0.0);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL2_RenderDrawData(ImGui::GetDrawData());
-//        cout << "[editorui]\t" << "End PostDraw" << endl;
+//        cout << "[editorui]\t\t" << "End PostDraw" << endl;
     }
 
 
     void InitMenu()
     {
-        MenuStrip* mstrip = EditorInstance::GetSingleton()->menuStrip = new MenuStrip();
+        MenuStrip* mstrip = AppInstance::GetSingleton()->menuStrip = new MenuStrip();
         mstrip->AddItem("Tools/", "Plugin manager", TogglePluginMGR);
         mstrip->AddItem("Tools/Other", "Deep tools", TogglePluginMGR);
         mstrip->AddItem("Tools/Other/One more level", "...", TogglePluginMGR);
@@ -341,7 +343,7 @@ public:
                     if (ImGui::MenuItem("Paste", "CTRL+V")) {}
                     ImGui::EndMenu();
                 }
-                for (auto rootElement : EditorInstance::GetSingleton()->menuStrip->strip)
+                for (auto rootElement : AppInstance::GetSingleton()->menuStrip->strip)
                 {
                     EditorSubMenu(rootElement);
                 }
@@ -471,16 +473,16 @@ public:
 
         for (int i = 0; i < ((int)gos.size()); i++)
         {
-            auto it = gos.begin(); //EditorInstance::GetSingleton()->currentScene->hierarchy.begin();
+            auto it = gos.begin(); //AppInstance::GetSingleton()->currentScene->hierarchy.begin();
             boost::advance(it, i);
             ImGuiTreeNodeFlags node_flags = ((selection_mask & (1 << i)) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnDoubleClick;
-            bool opened = ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, (*it)->name.c_str(), i);
+            bool opened = ImGui::TreeNodeEx((void*)(intptr_t)i, node_flags, (*it)->GetName().c_str(), i);
             if (ImGui::IsItemClicked())
             {
                 node_clicked = i;
                 selectedGameObjectIndex = i;
-                EditorInstance::GetSingleton()->selectedInHieararchy = (*it);
-//                cout << "[editorui]\t" << "SELECTED: " << EditorInstance::GetSingleton()->selectedInHieararchy << endl;
+                AppInstance::GetSingleton()->selectedInHieararchy = (*it);
+//                cout << "[editorui]\t\t" << "SELECTED: " << AppInstance::GetSingleton()->selectedInHieararchy << endl;
             }
             if (opened)
             {
@@ -519,16 +521,16 @@ public:
     void OnKeyBoardUp(unsigned char c, int x, int y){
         switch(c){
             case 'f' | 'F':
-            if(auto selected = EditorInstance::GetSingleton()->selectedInHieararchy){
-                auto cam = EditorInstance::GetSingleton()->currentScene->Get("Editor Camera");
-                if(cam && (&cam->transform != &selected->transform)){
-                    Vector3 distance = (cam->transform.globalPosition() - selected->transform.globalPosition());
-                    cout << "[editorui]\t" << "DIST: " << distance.toStringA() << endl;
+            if(auto selected = AppInstance::GetSingleton()->selectedInHieararchy){
+                auto cam = AppInstance::GetSingleton()->currentScene->Get("Editor Camera");
+                if(cam && (&cam->GetTransform() != &selected->GetTransform())){
+                    Vector3 distance = (cam->GetTransform().globalPosition() - selected->GetTransform().globalPosition());
+                    cout << "[editorui]\t\t" << "DIST: " << distance.toStringA() << endl;
                     double length = 100;
-                    cout << "[editorui]\t" << "LEN: " << length << endl;
-                    cam->transform.position = selected->transform.position + (distance.normalize()) * (length);
+                    cout << "[editorui]\t\t" << "LEN: " << length << endl;
+                    cam->GetTransform().position = selected->GetTransform().position + (distance.normalize()) * (length);
                     // TODO: fix look at!
-                    cam->transform.rotation = Vector3(cam->transform.rotation.x - distance.normalize().x, cam->transform.rotation.y - distance.normalize().y, cam->transform.rotation.y);
+                    cam->GetTransform().rotation = Vector3(cam->GetTransform().rotation.x - distance.normalize().x, cam->GetTransform().rotation.y - distance.normalize().y, cam->GetTransform().rotation.y);
                 }
             }
             break;
@@ -536,15 +538,15 @@ public:
     }
 
     void transformSelected(ImVec2 minPos, ImVec2 maxPos){
-        if(auto tg = EditorInstance::GetSingleton()->selectedInHieararchy)
-            EditTransform(&tg->transform, minPos, maxPos);
+        if(auto tg = AppInstance::GetSingleton()->selectedInHieararchy)
+            EditTransform(&tg->GetTransform(), minPos, maxPos);
     }
 
     void EditTransform(Transform* t, ImVec2 minPos, ImVec2 maxPos)
     {
         //static mat4 transform;
-        //cout << "[editorui]\t" << "EDIT TRANSFORM" << endl;
-        auto cam = EditorInstance::GetSingleton()->currentScene->Get("Editor Camera");
+        //cout << "[editorui]\t\t" << "EDIT TRANSFORM" << endl;
+        auto cam = AppInstance::GetSingleton()->currentScene->Get("Editor Camera");
         auto camCmp = cam->GetComponent<Camera>();
 
         ImGuizmo::SetOrthographic(false);
@@ -553,7 +555,7 @@ public:
 
 
         ImGuiIO& io = ImGui::GetIO();
-//        cout << "[editorui]\t" << "IO SIZE: " << io.DisplaySize.x << ", " << io.DisplaySize.y << endl;
+//        cout << "[editorui]\t\t" << "IO SIZE: " << io.DisplaySize.x << ", " << io.DisplaySize.y << endl;
         ImGuizmo::SetRect(minPos.x, minPos.y, maxPos.x, maxPos.y);
 
         float* _view = new float[16];
@@ -581,9 +583,9 @@ public:
 
         auto matrix = //glm::mat4();
         glm::lookAt(
-            glm::vec3 { cam->transform.globalPosition().x, cam->transform.globalPosition().y, cam->transform.globalPosition().z },
+            glm::vec3 { cam->GetTransform().globalPosition().x, cam->GetTransform().globalPosition().y, cam->GetTransform().globalPosition().z },
             //{ t->globalPosition().x, t->globalPosition().y, t->globalPosition().z },
-            { cam->transform.globalPosition().x + cam->transform.direction().x, cam->transform.globalPosition().y + cam->transform.direction().y, cam->transform.globalPosition().z + cam->transform.direction().z },
+            { cam->GetTransform().globalPosition().x + cam->GetTransform().direction().x, cam->GetTransform().globalPosition().y + cam->GetTransform().direction().y, cam->GetTransform().globalPosition().z + cam->GetTransform().direction().z },
             { 0, 1, 0});
 
 //        glutSolidSphere(1.0, 50, 50);
@@ -616,8 +618,8 @@ public:
         ImGuizmo::Manipulate(
                     &matrix[0][0],
                 &projection[0][0],
-                (ImGuizmo::OPERATION)EditorInstance::GetSingleton()->manipulationMode,
-                (ImGuizmo::MODE)EditorInstance::GetSingleton()->manipulationWorld,
+                (ImGuizmo::OPERATION)AppInstance::GetSingleton()->manipulationMode,
+                (ImGuizmo::MODE)AppInstance::GetSingleton()->manipulationWorld,
                 &view[0][0],
                 NULL,
                 NULL);
@@ -639,8 +641,8 @@ public:
             return;
 
         ImGui::Begin("Hierarchy", &win->hierarchy, window_flags);
-        //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&EditorInstance::GetSingleton()->currentScene->hierarchy), EditorInstance::GetSingleton()->currentScene->hierarchy.size());
-        DisplayRecursiveGameObjectHierarchy(*EditorInstance::GetSingleton()->currentScene->hierarchy);
+        //ImGui::ListBox("", &selectedGameObjectIndex, HierarchyGetter, static_cast<void*>(&AppInstance::GetSingleton()->currentScene->hierarchy), AppInstance::GetSingleton()->currentScene->hierarchy.size());
+        DisplayRecursiveGameObjectHierarchy(AppInstance::GetSingleton()->currentScene->GetHierarchy());
         ImGui::End();
     }
 
@@ -650,67 +652,67 @@ public:
 
         ImGui::Begin("Inspector", &win->inspector, window_flags);
         ImGui::Text("Manipulation space:");
-        if (ImGui::RadioButton("Local", EditorInstance::GetSingleton()->manipulationWorld == ImGuizmo::LOCAL))
-            EditorInstance::GetSingleton()->manipulationWorld = ImGuizmo::LOCAL;
+        if (ImGui::RadioButton("Local", AppInstance::GetSingleton()->manipulationWorld == ImGuizmo::LOCAL))
+            AppInstance::GetSingleton()->manipulationWorld = ImGuizmo::LOCAL;
         ImGui::SameLine();
-        if (ImGui::RadioButton("World", EditorInstance::GetSingleton()->manipulationWorld == ImGuizmo::WORLD))
-            EditorInstance::GetSingleton()->manipulationWorld = ImGuizmo::WORLD;
+        if (ImGui::RadioButton("World", AppInstance::GetSingleton()->manipulationWorld == ImGuizmo::WORLD))
+            AppInstance::GetSingleton()->manipulationWorld = ImGuizmo::WORLD;
 
         ImGui::Text("Manipulation mode:");
-        if (ImGui::RadioButton("Translate", EditorInstance::GetSingleton()->manipulationMode == ImGuizmo::TRANSLATE))
-            EditorInstance::GetSingleton()->manipulationMode = ImGuizmo::TRANSLATE;
+        if (ImGui::RadioButton("Translate", AppInstance::GetSingleton()->manipulationMode == ImGuizmo::TRANSLATE))
+            AppInstance::GetSingleton()->manipulationMode = ImGuizmo::TRANSLATE;
         ImGui::SameLine();
-        if (ImGui::RadioButton("Rotate", EditorInstance::GetSingleton()->manipulationMode == ImGuizmo::ROTATE))
-            EditorInstance::GetSingleton()->manipulationMode = ImGuizmo::ROTATE;
+        if (ImGui::RadioButton("Rotate", AppInstance::GetSingleton()->manipulationMode == ImGuizmo::ROTATE))
+            AppInstance::GetSingleton()->manipulationMode = ImGuizmo::ROTATE;
         ImGui::SameLine();
-        if (ImGui::RadioButton("Scale", EditorInstance::GetSingleton()->manipulationMode == ImGuizmo::SCALE))
-            EditorInstance::GetSingleton()->manipulationMode = ImGuizmo::SCALE;
-        if(auto sltd = EditorInstance::GetSingleton()->selectedInHieararchy){
+        if (ImGui::RadioButton("Scale", AppInstance::GetSingleton()->manipulationMode == ImGuizmo::SCALE))
+            AppInstance::GetSingleton()->manipulationMode = ImGuizmo::SCALE;
+        if(auto sltd = AppInstance::GetSingleton()->selectedInHieararchy){
             char *__name = new char[128];
-            strcpy(__name, sltd->name.c_str());
+            strcpy(__name, sltd->GetName().c_str());
             ImGui::InputText("Name", __name, 128);
-            sltd->name = __name;
+            sltd->SetName(__name);
 
             char *__tag= new char[128];
-            strcpy(__tag, sltd->tag.c_str());
+            strcpy(__tag, sltd->GetTag().c_str());
             ImGui::InputText("Tag", __tag, 128);
-            sltd->tag = __tag;
+            sltd->SetTag(__tag);
 
             ImGui::BeginGroup();
             ImGui::Text("Transform");
             ImGui::Text("Position");
-            double posx = sltd->transform.position.x,
-                    posy = sltd->transform.position.y,
-                    posz = sltd->transform.position.z;
+            double posx = sltd->GetTransform().position.x,
+                    posy = sltd->GetTransform().position.y,
+                    posz = sltd->GetTransform().position.z;
             ImGui::Columns(3);
             ImGui::InputDouble("xp",&posx); ImGui::NextColumn();
             ImGui::InputDouble("yp",&posy); ImGui::NextColumn();
             ImGui::InputDouble("zp",&posz);
-            sltd->transform.position.x = posx;
-            sltd->transform.position.y = posy;
-            sltd->transform.position.z = posz;
+            sltd->GetTransform().position.x = posx;
+            sltd->GetTransform().position.y = posy;
+            sltd->GetTransform().position.z = posz;
             ImGui::EndColumns();
 
             ImGui::Text("Scale");
-            double scx = sltd->transform.scale.x,
-                    scy = sltd->transform.scale.y,
-                    scz = sltd->transform.scale.z;
+            double scx = sltd->GetTransform().scale.x,
+                    scy = sltd->GetTransform().scale.y,
+                    scz = sltd->GetTransform().scale.z;
             ImGui::Columns(3);
             ImGui::InputDouble("xs",&scx); ImGui::NextColumn();
             ImGui::InputDouble("ys",&scy); ImGui::NextColumn();
             ImGui::InputDouble("zs",&scz);
-            sltd->transform.scale.x = scx;
-            sltd->transform.scale.y = scy;
-            sltd->transform.scale.z = scz;
+            sltd->GetTransform().scale.x = scx;
+            sltd->GetTransform().scale.y = scy;
+            sltd->GetTransform().scale.z = scz;
             ImGui::EndColumns();
 
             ImGui::Text("Rotation");
             ImGui::Columns(3);
-            ImGui::InputDouble("xr",&sltd->transform.rotation.x);
+            ImGui::InputDouble("xr",&sltd->GetTransform().rotation.x);
             ImGui::NextColumn();
-            ImGui::InputDouble("yr",&sltd->transform.rotation.y);
+            ImGui::InputDouble("yr",&sltd->GetTransform().rotation.y);
             ImGui::NextColumn();
-            ImGui::InputDouble("zr",&sltd->transform.rotation.z);
+            ImGui::InputDouble("zr",&sltd->GetTransform().rotation.z);
             //ImGui::InputDouble("wr",&sltd->transform.rotation.w);
             ImGui::EndColumns();
 
@@ -726,7 +728,7 @@ public:
                     }
                 }
             }
-            //DisplayRecursiveGameObjectHierarchy(EditorInstance::GetSingleton()->currentScene->hierarchy);
+            //DisplayRecursiveGameObjectHierarchy(AppInstance::GetSingleton()->currentScene->hierarchy);
         }
         ImGui::End();
     }
@@ -738,7 +740,7 @@ public:
         ImGui::Begin("Render", &win->render, window_flags);
         ImVec2 pos = ImGui::GetWindowPos();
 // TODO: bring it back
-//        auto tex = dynamic_cast<NukeOGL*>(EditorInstance::GetSingleton()->render)->getRenderTexture();
+//        auto tex = dynamic_cast<NukeOGL*>(AppInstance::GetSingleton()->render)->getRenderTexture();
         ImVec2 maxPos = ImVec2(pos.x + ImGui::GetWindowSize().x, pos.y + ImGui::GetWindowSize().y + 2);
 //        ImGui::GetWindowDrawList()->AddImage((void *)tex,
 //                                             ImVec2(ImGui::GetItemRectMin().x + 0,
@@ -746,8 +748,8 @@ public:
 //                                             maxPos, ImVec2(0,1), ImVec2(1,0));
 
 
-//        if(EditorInstance::GetSingleton()->selectedInHieararchy){
-//            EditTransform(&EditorInstance::GetSingleton()->selectedInHieararchy->transform);
+//        if(AppInstance::GetSingleton()->selectedInHieararchy){
+//            EditTransform(&AppInstance::GetSingleton()->selectedInHieararchy->transform);
 //        }
 
         transformSelected(pos, maxPos);
@@ -862,7 +864,7 @@ public:
                         if (ImGui::Button("Run"))
                         {
                             printf("Starting... [%s]\n", selectedPlugin.get()->title);
-                            selectedPlugin->Run(EditorInstance::GetSingleton());
+                            selectedPlugin->Run(AppInstance::GetSingleton());
                         }
                     }
                 }
@@ -879,10 +881,10 @@ public:
         else
             window_flags &= false;
 
-//        cout << "[editorui]\t" << "Draw" << endl;
+//        cout << "[editorui]\t\t" << "Draw" << endl;
         mainMenu();
 
-        for(auto tup: *EditorInstance::GetSingleton()->editorWindows){
+        for(auto tup: *AppInstance::GetSingleton()->editorWindows){
             tup.second();
         }
 //        if(win->about)
@@ -900,7 +902,7 @@ public:
 //        if(win->plugmgr)
 //            PluginMGRWindow();
 
-//        cout << "[editorui]\t" << "End Draw" << endl;
+//        cout << "[editorui]\t\t" << "End Draw" << endl;
 
         postDraw();
     }
@@ -951,7 +953,7 @@ public:
                     dy = y - prevY;
 
 
-            //cout << "[editorui]\t" << "CAM ROT [ " << transform->rotation.toStringA() << " ]" << endl;
+            //cout << "[editorui]\t\t" << "CAM ROT [ " << transform->rotation.toStringA() << " ]" << endl;
             prevX = x;
             prevY = y;
             editorCam->transform->rotation.x += ((editorCam->invertMouse) ? 1 : -1) * dy * g_rotation_speed;// > 0 ? 0.5 : -0.5;

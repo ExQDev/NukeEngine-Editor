@@ -39,7 +39,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v142</PlatformToolset>
+    <PlatformToolset>v141</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -108,10 +108,13 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy "$(ProjectDir)dist" "$(OutputPath)" /s /i /y /e</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\NukeEngine\;..\NukeEngine\deps\LuaBridge\Source;..\NukeEngine\deps\bx\include\compat\msvc;..\NukeEngine\deps\bgfx\include;..\NukeEngine\deps\bx\include;.\;..\NukeEngine\include;..\NukeEngine\deps\glm;..\NukeEngine\deps;..\NukeEngine\deps\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\NukeEngine\;..\NukeEngine\deps\LuaBridge\Source;..\NukeEngine\deps\bx\include\compat\msvc;..\NukeEngine\deps\bgfx\include;..\NukeEngine\deps\bx\include;.\include\;..\NukeEngine\include;..\NukeEngine\deps\glm;..\NukeEngine\deps;..\NukeEngine\deps\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;GLM_ENABLE_EXPERIMENTAL;EDITOR;_USE_MATH_DEFINES;NOMINMAX;NUKEENGINE_API=__declspec(dllimport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>NukeEngine.h</ForcedIncludeFiles>
     </ClCompile>
@@ -122,9 +125,10 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\NukeEngine\;..\NukeEngine\deps\LuaBridge\Source;..\NukeEngine\deps\bx\include\compat\msvc;..\NukeEngine\deps\bgfx\include;..\NukeEngine\deps\bx\include;.\include;..\NukeEngine\include;..\NukeEngine\deps\glm;..\NukeEngine\deps;..\NukeEngine\deps\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;GLM_ENABLE_EXPERIMENTAL;EDITOR;_USE_MATH_DEFINES;NOMINMAX;NUKEENGINE_API=__declspec(dllimport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;GLM_ENABLE_EXPERIMENTAL;EDITOR;_USE_MATH_DEFINES;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>algorithm;NukeEngine.h;pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <UndefinePreprocessorDefinitions>NUKEENGINE_EXPORTS</UndefinePreprocessorDefinitions>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <IgnoreSpecificDefaultLibraries>
@@ -132,8 +136,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(ProjectDir)dist" "$(OutputPath)" /s /i /y /e
-xcopy "$(ProjectDir)res" "$(OutputPath)res" /s /i /y /e</Command>
+      <Command>xcopy "$(ProjectDir)dist" "$(OutputPath)" /s /i /y /e</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -147,7 +150,6 @@ xcopy "$(ProjectDir)res" "$(OutputPath)res" /s /i /y /e</Command>
     <ClCompile Include="..\NukeEngine\deps\ImGuizmo\ImGuizmo.cpp" />
     <ClCompile Include="..\NukeEngine\deps\ImGuizmo\ImSequencer.cpp" />
     <ClCompile Include="..\NukeEngine\deps\imgui\imgui.cpp" />
-    <ClCompile Include="..\NukeEngine\deps\imgui\imgui_demo.cpp" />
     <ClCompile Include="..\NukeEngine\deps\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\NukeEngine\deps\lodepng\lodepng.cpp" />
     <ClCompile Include="..\NukeEngine\deps\lodepng\lodepng_util.cpp" />
@@ -182,6 +184,7 @@ xcopy "$(ProjectDir)res" "$(OutputPath)res" /s /i /y /e</Command>
   <ItemGroup>
     <ProjectReference Include="..\NukeEngine\NukeEngine.vcxproj">
       <Project>{d26d9f7c-5a3a-4355-bd29-61e0e8f22faf}</Project>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
