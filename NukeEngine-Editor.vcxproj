@@ -39,7 +39,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -76,6 +76,9 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IntDir>$(Platform)\$(Configuration)\Editor-Intermediate\</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnableManifest>false</VcpkgEnableManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -115,11 +118,19 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\NukeEngine\;..\NukeEngine\deps\LuaBridge\Source;..\NukeEngine\deps\bx\include\compat\msvc;..\NukeEngine\deps\bgfx\include;..\NukeEngine\deps\bx\include;.\include\;..\NukeEngine\include;..\NukeEngine\deps\glm;..\NukeEngine\deps;..\NukeEngine\deps\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;GLM_ENABLE_EXPERIMENTAL;EDITOR;_USE_MATH_DEFINES;NOMINMAX;NUKEENGINE_API=__declspec(dllimport);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;GLM_ENABLE_EXPERIMENTAL;EDITOR;_USE_MATH_DEFINES;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ForcedIncludeFiles>NukeEngine.h</ForcedIncludeFiles>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <LanguageStandard>Default</LanguageStandard>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <MinimalRebuild>true</MinimalRebuild>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
     </ClCompile>
     <Link>
-      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
+      <AdditionalLibraryDirectories>..\NukeEngine\$(Platform)\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -129,6 +140,7 @@
       <ForcedIncludeFiles>algorithm;NukeEngine.h;pch.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <IgnoreSpecificDefaultLibraries>
@@ -141,33 +153,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="config\main.lua" />
-    <None Include="imgui.ini" />
     <None Include="res\logo.icns" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\NukeEngine\deps\ImGuizmo\ImCurveEdit.cpp" />
-    <ClCompile Include="..\NukeEngine\deps\ImGuizmo\ImGradient.cpp" />
-    <ClCompile Include="..\NukeEngine\deps\ImGuizmo\ImGuizmo.cpp" />
-    <ClCompile Include="..\NukeEngine\deps\ImGuizmo\ImSequencer.cpp" />
-    <ClCompile Include="..\NukeEngine\deps\imgui\imgui.cpp" />
-    <ClCompile Include="..\NukeEngine\deps\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\NukeEngine\deps\lodepng\lodepng.cpp" />
-    <ClCompile Include="..\NukeEngine\deps\lodepng\lodepng_util.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\NukeEngine\deps\ImGuizmo\ImCurveEdit.h" />
-    <ClInclude Include="..\NukeEngine\deps\ImGuizmo\ImGradient.h" />
-    <ClInclude Include="..\NukeEngine\deps\ImGuizmo\ImGuizmo.h" />
-    <ClInclude Include="..\NukeEngine\deps\ImGuizmo\ImSequencer.h" />
-    <ClInclude Include="..\NukeEngine\deps\imgui\imconfig.h" />
-    <ClInclude Include="..\NukeEngine\deps\imgui\imgui.h" />
-    <ClInclude Include="..\NukeEngine\deps\imgui\imgui_internal.h" />
-    <ClInclude Include="..\NukeEngine\deps\imgui\stb_rect_pack.h" />
-    <ClInclude Include="..\NukeEngine\deps\imgui\stb_textedit.h" />
-    <ClInclude Include="..\NukeEngine\deps\imgui\stb_truetype.h" />
-    <ClInclude Include="..\NukeEngine\deps\lodepng\lodepng.h" />
-    <ClInclude Include="..\NukeEngine\deps\lodepng\lodepng_util.h" />
     <ClInclude Include="include\editor\editorui.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
